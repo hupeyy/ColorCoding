@@ -40,7 +40,8 @@
       const submittedCode = editorComponent.getCode();
       console.log('Submitted code:', submittedCode);
       console.log('Language:', selectedLanguage);
-      // Here you would typically send the code and language to your backend for evaluation
+      
+      
     }
     </script>
     
