@@ -38,6 +38,6 @@
   export function getCode() {
     return editor ? editor.getValue() : code;
   }
-  </script>
+</script>
   
   <div bind:this={editorContainer} style="width: 100%; height: 400px;"></div>

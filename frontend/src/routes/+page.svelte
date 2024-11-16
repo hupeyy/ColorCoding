@@ -6,6 +6,18 @@
     export let data: PageData;
     const problems = data.problems || [];
 
+    var totalScore = 0;
+
+    for (let i = 0; i < problems.length; i++) {
+        let multiplier = 1;
+        if (problems[i].difficulty === 'Medium') {
+            multiplier = 2;
+        } else if (problems[i].difficulty === 'Hard') {
+            multiplier = 3;
+        }
+        totalScore += problems[i].passed * multiplier * 100;
+    }
+
 </script>
 
 <h1>Problems</h1>
@@ -23,13 +35,13 @@
                 <Table.Cell>{problem.title}</Table.Cell>
                 <Table.Cell>{problem.difficulty}</Table.Cell>
                 <Table.Cell>
-                    {#if problem.completed}
-                        Yes
-                    {:else}
-                        No
-                    {/if}
+                    {problem.passed} / {problem.testCases.length} 
                 </Table.Cell>
             </Table.Row>
         {/each}
     </Table.Body>
 </Table.Root>
+
+<Label>
+    Total Score: {totalScore}
+</Label>

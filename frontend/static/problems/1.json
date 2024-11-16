@@ -1,23 +1,33 @@
 {
-    "id": 1,
-    "title": "Add Two Numbers",
-    "description": "Add two numbers together",
-    "difficulty": "easy",
-    "testCases": [
-        {
-            "input": [2, 3],
-            "output": 5
-        },
-        {
-            "input": [5, 5],
-            "output": 10
-        },
-        {
-            "input": [0, 0],
-            "output": 0
-        }
-    ],
-    "starterCode": {
-        "python": "def solution(a, b):\n\t# your code here\n\tpass"
+  "id": 1,
+  "title": "Add Two Numbers",
+  "description": "Add two numbers together",
+  "difficulty": "easy",
+  "testCases": [
+    {
+      "input": [
+        2,
+        3
+      ],
+      "output": 5
+    },
+    {
+      "input": [
+        5,
+        5
+      ],
+      "output": 10
+    },
+    {
+      "input": [
+        0,
+        0
+      ],
+      "output": 0
     }
+  ],
+  "passed": 3,
+  "starterCode": {
+    "python": "def solution(a, b):\n\t# your code here\n\tpass"
+  }
 }

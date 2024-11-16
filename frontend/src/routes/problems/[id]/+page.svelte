@@ -1,6 +1,8 @@
 <script lang="ts">
     import type { PageData } from './$types';
+    import { browser } from '$app/environment';
     import MonacoEditor from '$lib/components/MonacoEditor.svelte';
+    import { onMount, onDestroy } from 'svelte';
     
     export let data: PageData;
     const { problem } = data;
@@ -16,14 +18,15 @@
     let executionResult: { output: string; passed: number; total: number } | null = null;
     let error: string | null = null;
 
-    function handleLanguageChange(event: Event) {
-      const target = event.target as HTMLSelectElement;
-      selectedLanguage = target.value;
-      code = problem.starterCode[selectedLanguage];
-    }
+    // function handleLanguageChange(event: Event) {
+    //   const target = event.target as HTMLSelectElement;
+    //   selectedLanguage = target.value;
+    //   code = problem.starterCode[selectedLanguage];
+    // }
     
     async function handleSubmit() {
       const submittedCode = editorComponent.getCode();
+      saveCodeToLocalStorage();
       console.log('Submitted code:\n', submittedCode);
       console.log('Language:', selectedLanguage);
       
@@ -36,7 +39,8 @@
           body: JSON.stringify({
             code: submittedCode,
             language: selectedLanguage,
-            testCases: problem.testCases
+            testCases: problem.testCases,
+            problemID: problem.id
           })
         });
 
@@ -48,12 +52,46 @@
         console.log('Execution result:', result);
         executionResult = result;
         error = null;
+        problem.passed = result.passed;
       } catch (err) {
         console.error('Error executing code:', err);
         error = err instanceof Error ? err.message : String(err);
         executionResult = null;
       }
     }
+
+    function saveCodeToLocalStorage() {
+      if (browser) {
+        localStorage.setItem(`code_${problem.id}`, code);
+      }
+    }
+
+    function restoreCodeFromLocalStorage() {
+      if (browser) {
+        const savedCode = localStorage.getItem(`code_${problem.id}`);
+        if (savedCode) {
+          code = savedCode;
+        }
+      }
+    }
+
+    $: {
+      if (browser && code) {
+        saveCodeToLocalStorage();
+      }
+    }
+
+    onMount(() => {
+      if (browser) {
+        restoreCodeFromLocalStorage();
+      }
+    });
+
+    onDestroy(() => {
+      if (browser) {
+        saveCodeToLocalStorage();
+      }
+    });
 </script>
 
 <h1>{problem.title}</h1>
@@ -69,7 +107,7 @@
   </select>
 </div> -->
 
-<MonacoEditor bind:this={editorComponent} bind:code language={selectedLanguage} />
+<MonacoEditor bind:this={editorComponent} bind:code={code} language={selectedLanguage} />
 
 <button on:click={handleSubmit}>Submit Solution</button>
 

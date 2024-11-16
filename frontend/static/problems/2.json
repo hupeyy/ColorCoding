@@ -1,26 +1,30 @@
 {
-    "id": 2,
-    "title": "Reverse String",
-    "description": "Reverse a string",
-    "difficulty": "easy",
-    "testCases": [
-        {
-            "input": ["hello"],
-            "output": "olleh"
-        },
-        {
-            "input": ["world"],
-            "output": "dlrow"
-        },
-        {
-            "input": ["racecar"],
-            "output": "racecar"
-        }
-    ],
-    "starterCode": {
-        "python": "def solution(s):\n\t# your code here\n\tpass",
-        "javascript ": "function solution(s) {\n\t// your code here\n}",
-        "java": "public class Solution {\n\tpublic String solution(String s) {\n\t\t// your code here\n\t}\n}",
-        "cpp": "string solution(string s) {\n\t// your code here\n}"
+  "id": 2,
+  "title": "Reverse String",
+  "description": "Reverse a string",
+  "difficulty": "easy",
+  "testCases": [
+    {
+      "input": [
+        "hello"
+      ],
+      "output": "olleh"
+    },
+    {
+      "input": [
+        "world"
+      ],
+      "output": "dlrow"
+    },
+    {
+      "input": [
+        "racecar"
+      ],
+      "output": "racecar"
     }
+  ],
+  "passed": 3,
+  "starterCode": {
+    "python": "def solution(s):\n\t# your code here\n\tpass"
+  }
 }

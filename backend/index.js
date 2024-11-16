@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/execute', async (req, res) => {
-    const { code, language, testCases } = req.body;
+    const { code, language, testCases, problemID } = req.body;
 
     console.log("Received code: ", code);
     console.log("Received language: ", language);
@@ -25,6 +25,7 @@ app.post('/execute', async (req, res) => {
 
     try {
         const result = await executeCode(code, language, testCases);
+        await updateProblemFile(problemID, result.passed);
         res.json(result);
     } catch (error) {
         res.status(500).send(error.toString());
@@ -37,10 +38,7 @@ app.listen(port, () => {
 
 function getFileExtension(language) {
     switch (language) {
-      case 'javascript': return 'js';
       case 'python': return 'py';
-      case 'java': return 'java';
-      case 'cpp': return 'cpp';
       default: throw new Error('Unsupported language');
     }
 }
@@ -65,7 +63,7 @@ function runCode(filePath, language) {
                 console.error(`Execution error: ${error.message}`);
                 reject(error);
             } else {
-                console.log(`Executtion output: ${stdout}`);
+                console.log(`Execution output: ${stdout}`);
                 const result = parseExecutionResult(stdout);
                 resolve(result);
             }
@@ -81,10 +79,24 @@ function parseExecutionResult(output) {
         return {
             output: output,
             passed: passed,
-            total: total
+            total: total,
         };
     }
     return { output: output, passed: 0, total: 0 };
+}
+
+async function updateProblemFile(problemID, passedCount) {
+    const filePath = path.join(__dirname,'..', 'frontend', 'static', 'problems', `${problemID}.json`);
+    try {
+        const fileContent = await fsPromises.readFile(filePath, 'utf-8');
+        const problemData = JSON.parse(fileContent);
+        problemData.passed = passedCount;
+        await fsPromises.writeFile(filePath, JSON.stringify(problemData, null, 2));
+        console.log(`Successfully updated problem file for problem ${problemID}`);
+    } catch (error) {
+        console.error(`Error updating problem file: ${error}`);
+        throw error;
+    }
 }
 
 function gradeCode(code, language, testCases) {
