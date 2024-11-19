@@ -134,7 +134,7 @@ function gradeCode(code, language, testCases) {
 import json
 
 def main():
-    test_cases = ${JSON.stringify(testCases, null, 2).replace(/\n/g, '\n    ')}
+    test_cases = json.loads('${JSON.stringify(testCases)}')
     passed_count = 0
     total_count = len(test_cases)
     
