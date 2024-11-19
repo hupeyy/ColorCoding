@@ -25,8 +25,20 @@ app.post('/execute', async (req, res) => {
 
     try {
         const result = await executeCode(code, language, testCases);
-        await updateProblemFile(problemID, result.passed);
+        await updatePassedCases(problemID, result.passed);
         res.json(result);
+    } catch (error) {
+        res.status(500).send(error.toString());
+    }
+})
+
+app.post('/save', async (req, res) => {
+    const { code, problemID, language } = req.body;
+    saveCodeToFile(code, problemID, language);
+    
+    try {
+        await fsPromises.writeFile(filePath, code);
+        res.send('File saved successfully');
     } catch (error) {
         res.status(500).send(error.toString());
     }
@@ -85,7 +97,7 @@ function parseExecutionResult(output) {
     return { output: output, passed: 0, total: 0 };
 }
 
-async function updateProblemFile(problemID, passedCount) {
+async function updatePassedCases(problemID, passedCount) {
     const filePath = path.join(__dirname,'..', 'frontend', 'static', 'problems', `${problemID}.json`);
     try {
         const fileContent = await fsPromises.readFile(filePath, 'utf-8');
@@ -96,6 +108,20 @@ async function updateProblemFile(problemID, passedCount) {
     } catch (error) {
         console.error(`Error updating problem file: ${error}`);
         throw error;
+    }
+}
+
+async function saveCodeToFile(code, problemID, language) {
+    const filePath = path.join(__dirname,'..', 'frontend', 'static', 'problems', `${problemID}.json`)
+    try {
+        const fileContent = await fsPromises.readFile(filePath, 'utf-8');
+        const problemData = JSON.parse(fileContent);
+        problemData.code[language] = code;
+        await fsPromises.writeFile(filePath, JSON.stringify(problemData, null, 2));
+        console.log(`Successfully saved code to file ${filePath}`);
+    } catch (error) {
+        console.error(`Error saving code to file: ${error}`);
+        res.status
     }
 }
 

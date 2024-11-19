@@ -1,30 +1,22 @@
 {
   "id": 2,
   "title": "Reverse String",
-  "description": "Reverse a string",
+  "description": "Given a string, return it reversed.",
   "difficulty": "easy",
   "testCases": [
-    {
-      "input": [
-        "hello"
-      ],
-      "output": "olleh"
-    },
-    {
-      "input": [
-        "world"
-      ],
-      "output": "dlrow"
-    },
-    {
-      "input": [
-        "racecar"
-      ],
-      "output": "racecar"
-    }
+    {"input": ["hello"], "output": "olleh"},
+    {"input": ["OpenAI"], "output": "IAnepO"},
+    {"input": ["racecar"], "output": "racecar"},
+    {"input": ["12345"], "output": "54321"},
+    {"input": ["a"], "output": "a"},
+    {"input": [""], "output": ""},
+    {"input": ["Python"], "output": "nohtyP"},
+    {"input": ["Coding Challenge"], "output": "egnellahC gnidoC"},
+    {"input": ["!@#$%"], "output": "%$#@!"},
+    {"input": ["  spaces  "], "output": "  secaps  "}
   ],
-  "passed": 3,
-  "starterCode": {
-    "python": "def solution(s):\n\t# your code here\n\tpass"
+  "passed": 0,
+  "code": {
+    "python": "def solution(s):\n\t# Your code here\n\tpass"
   }
 }

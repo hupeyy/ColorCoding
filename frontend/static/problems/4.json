@@ -1,0 +1,22 @@
+{
+    "id": 4,
+    "title": "Valid Parentheses",
+    "description": "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid. An input string is valid if: 1. Open brackets must be closed by the same type of brackets. 2. Open brackets must be closed in the correct order.",
+    "difficulty": "medium",
+    "testCases": [
+      {"input": ["()"], "output": true},
+      {"input": ["()[]{}"], "output": true},
+      {"input": ["(]"], "output": false},
+      {"input": ["([)]"], "output": false},
+      {"input": ["{[]}"], "output": true},
+      {"input": [""], "output": true},
+      {"input": ["(("], "output": false},
+      {"input": ["))"], "output": false},
+      {"input": ["(()())"], "output": true},
+      {"input": ["({[]})"], "output": true}
+    ],
+    "passed": 0,
+    "code": {
+      "python": "def solution(s):\n\t# Your code here\n\tpass"
+    }
+}

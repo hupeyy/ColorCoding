@@ -3,9 +3,11 @@
     import { browser } from '$app/environment';
     import MonacoEditor from '$lib/components/MonacoEditor.svelte';
     import { onMount, onDestroy } from 'svelte';
+    import * as Resizable from "$lib/components/ui/resizable";
+    import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
     
     export let data: PageData;
-    const { problem } = data;
+    let { problem } = data;
     
     let editorComponent: MonacoEditor;
     
@@ -14,7 +16,7 @@
     ];
 
     let selectedLanguage = languages[0].value; 
-    let code = problem.starterCode[selectedLanguage];
+    let code = problem.code[selectedLanguage];
     let executionResult: { output: string; passed: number; total: number } | null = null;
     let error: string | null = null;
 
@@ -26,7 +28,6 @@
     
     async function handleSubmit() {
       const submittedCode = editorComponent.getCode();
-      saveCodeToLocalStorage();
       console.log('Submitted code:\n', submittedCode);
       console.log('Language:', selectedLanguage);
       
@@ -60,42 +61,29 @@
       }
     }
 
-    function saveCodeToLocalStorage() {
-      if (browser) {
-        localStorage.setItem(`code_${problem.id}`, code);
+    async function saveCode() {
+      const submittedCode = editorComponent.getCode();
+      console.log('Submitted code:\n', submittedCode);
+      console.log('Language:', selectedLanguage);
+      
+      try {
+        const response = await fetch('http://localhost:3000/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            code: submittedCode,
+            problemID: problem.id,
+            language: selectedLanguage,
+          })
+        });
+      } catch (err) {
+        console.error('Error saving code:', err);
+        error = err instanceof Error ? err.message : String(err);
       }
     }
-
-    function restoreCodeFromLocalStorage() {
-      if (browser) {
-        const savedCode = localStorage.getItem(`code_${problem.id}`);
-        if (savedCode) {
-          code = savedCode;
-        }
-      }
-    }
-
-    $: {
-      if (browser && code) {
-        saveCodeToLocalStorage();
-      }
-    }
-
-    onMount(() => {
-      if (browser) {
-        restoreCodeFromLocalStorage();
-      }
-    });
-
-    onDestroy(() => {
-      if (browser) {
-        saveCodeToLocalStorage();
-      }
-    });
 </script>
-
-<h1>{problem.title}</h1>
-<p>{problem.description}</p>
 
 <!-- Add later when multi-language support is working -->
 <!-- <div>
@@ -106,21 +94,53 @@
     {/each}
   </select>
 </div> -->
+<div class="h-[85vh]">
+<Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
+  <Resizable.Pane defaultSize={40}>
+    <h1 class="text-3xl">{problem.title}</h1>
+    <h2 class="pb-8">Difficulty: {problem.difficulty}</h2>
+    <p class="pb-8">{problem.description}</p>
+    <h2 class="text-2xl">Test Cases</h2>
+    <ul>
+      {#each problem.testCases as testCase}
+        <li>
+          <p>Input: {testCase.input}</p>
+          <p>Output: {testCase.output}</p>
+        </li>
+      {/each}
+    </ul>
+  </Resizable.Pane>
+  <ResizableHandle />
+  <Resizable.Pane defaultSize={60}>
+    <Resizable.PaneGroup direction="vertical">
+      <Resizable.Pane defaultSize={100}>
+        <MonacoEditor
+          bind:this={editorComponent}
+          bind:code={code}
+          language={selectedLanguage}
+        />
+      </Resizable.Pane>
+      <Resizable.Handle />
+      <Resizable.Pane defaultSize={100}>
+        <button on:click={handleSubmit}>Submit Solution</button>
+        <button on:click={saveCode}>Save Code</button>
+        {#if executionResult}
+          <div>
+            <h2>Execution Result</h2>
+            <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
+            <pre>{executionResult.output}</pre>
+          </div>
+        {/if}
+        {#if error}
+          <div class="error">
+            <p>Error: {error}</p>
+          </div>
+        {/if}
+      </Resizable.Pane>
+    </Resizable.PaneGroup>
+  </Resizable.Pane>  
+</Resizable.PaneGroup>
+</div>
 
-<MonacoEditor bind:this={editorComponent} bind:code={code} language={selectedLanguage} />
 
-<button on:click={handleSubmit}>Submit Solution</button>
 
-{#if executionResult}
-  <div>
-    <h2>Execution Result</h2>
-    <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
-    <pre>{executionResult.output}</pre>
-  </div>
-{/if}
-
-{#if error}
-  <div class="error">
-    <p>Error: {error}</p>
-  </div>
-{/if}

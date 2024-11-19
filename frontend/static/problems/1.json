@@ -1,33 +1,22 @@
 {
   "id": 1,
   "title": "Add Two Numbers",
-  "description": "Add two numbers together",
+  "description": "Given two integers, return their sum.",
   "difficulty": "easy",
   "testCases": [
-    {
-      "input": [
-        2,
-        3
-      ],
-      "output": 5
-    },
-    {
-      "input": [
-        5,
-        5
-      ],
-      "output": 10
-    },
-    {
-      "input": [
-        0,
-        0
-      ],
-      "output": 0
-    }
+    {"input": [2, 3], "output": 5},
+    {"input": [5, 5], "output": 10},
+    {"input": [0, 0], "output": 0},
+    {"input": [-1, 1], "output": 0},
+    {"input": [100, 200], "output": 300},
+    {"input": [-50, 50], "output": 0},
+    {"input": [1000, 2000], "output": 3000},
+    {"input": [-10, -20], "output": -30},
+    {"input": [9999, 1], "output": 10000},
+    {"input": [-9999, 9999], "output": 0}
   ],
   "passed": 3,
-  "starterCode": {
-    "python": "def solution(a, b):\n\t# your code here\n\tpass"
+  "code": {
+    "python": "def solution(a, b):\n\treturn a + b"
   }
 }
