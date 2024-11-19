@@ -13,14 +13,14 @@
         if (problems[i].difficulty === 'Medium') {
             multiplier = 2;
         } else if (problems[i].difficulty === 'Hard') {
-            multiplier = 3;
+            multiplier = 5;
         }
         totalScore += problems[i].passed * multiplier * 100;
     }
 
 </script>
 
-<h1>Problems</h1>
+<h1 class="text-2xl">Problem List</h1>
 <Table.Root>
     <Table.Header>
         <Table.Row>

@@ -1,9 +1,10 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-    import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
+    import { ScrollArea } from '$lib/components/ui/scroll-area';
     import * as Resizable from "$lib/components/ui/resizable";
     import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
+    import { Button } from '$lib/components/ui/button';
     
     export let data: PageData;
     let { problem } = data;
@@ -29,6 +30,7 @@
       const submittedCode = editorComponent.getCode();
       console.log('Submitted code:\n', submittedCode);
       console.log('Language:', selectedLanguage);
+      saveCode();
       
       try {
         const response = await fetch('http://localhost:3000/execute', {
@@ -103,7 +105,7 @@
     <ul>
       <!-- print only the first three test cases -->
       {#each problem.testCases.slice(0, 3) as testCase}
-        <li>
+        <li class="p-4">
           <p>Input: {testCase.input}</p>
           <p>Output: {testCase.output}</p>
         </li>
@@ -123,8 +125,10 @@
       <Resizable.Handle />
       <Resizable.Pane defaultSize={100}>
         <ScrollArea>
-        <button on:click={handleSubmit}>Submit Solution</button>
-        <button on:click={saveCode}>Save Code</button>
+        <div class="flex flex-row justify-between p-4">
+          <Button on:click={handleSubmit}>Submit Solution</Button>
+          <Button on:click={saveCode}>Save Code</Button>
+        </div>
         {#if executionResult}
           <div>
             <h2>Execution Result</h2>
