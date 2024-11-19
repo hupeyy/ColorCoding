@@ -1,8 +1,7 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    import { browser } from '$app/environment';
     import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-    import { onMount, onDestroy } from 'svelte';
+    import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
     import * as Resizable from "$lib/components/ui/resizable";
     import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
     
@@ -102,7 +101,8 @@
     <p class="pb-8">{problem.description}</p>
     <h2 class="text-2xl">Test Cases</h2>
     <ul>
-      {#each problem.testCases as testCase}
+      <!-- print only the first three test cases -->
+      {#each problem.testCases.slice(0, 3) as testCase}
         <li>
           <p>Input: {testCase.input}</p>
           <p>Output: {testCase.output}</p>
@@ -122,13 +122,13 @@
       </Resizable.Pane>
       <Resizable.Handle />
       <Resizable.Pane defaultSize={100}>
+        <ScrollArea>
         <button on:click={handleSubmit}>Submit Solution</button>
         <button on:click={saveCode}>Save Code</button>
         {#if executionResult}
           <div>
             <h2>Execution Result</h2>
             <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
-            <pre>{executionResult.output}</pre>
           </div>
         {/if}
         {#if error}
@@ -136,6 +136,7 @@
             <p>Error: {error}</p>
           </div>
         {/if}
+        </ScrollArea>
       </Resizable.Pane>
     </Resizable.PaneGroup>
   </Resizable.Pane>  

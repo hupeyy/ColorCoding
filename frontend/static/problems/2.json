@@ -4,16 +4,66 @@
   "description": "Given a string, return it reversed.",
   "difficulty": "easy",
   "testCases": [
-    {"input": ["hello"], "output": "olleh"},
-    {"input": ["OpenAI"], "output": "IAnepO"},
-    {"input": ["racecar"], "output": "racecar"},
-    {"input": ["12345"], "output": "54321"},
-    {"input": ["a"], "output": "a"},
-    {"input": [""], "output": ""},
-    {"input": ["Python"], "output": "nohtyP"},
-    {"input": ["Coding Challenge"], "output": "egnellahC gnidoC"},
-    {"input": ["!@#$%"], "output": "%$#@!"},
-    {"input": ["  spaces  "], "output": "  secaps  "}
+    {
+      "input": [
+        "hello"
+      ],
+      "output": "olleh"
+    },
+    {
+      "input": [
+        "OpenAI"
+      ],
+      "output": "IAnepO"
+    },
+    {
+      "input": [
+        "racecar"
+      ],
+      "output": "racecar"
+    },
+    {
+      "input": [
+        "12345"
+      ],
+      "output": "54321"
+    },
+    {
+      "input": [
+        "a"
+      ],
+      "output": "a"
+    },
+    {
+      "input": [
+        ""
+      ],
+      "output": ""
+    },
+    {
+      "input": [
+        "Python"
+      ],
+      "output": "nohtyP"
+    },
+    {
+      "input": [
+        "Coding Challenge"
+      ],
+      "output": "egnellahC gnidoC"
+    },
+    {
+      "input": [
+        "!@#$%"
+      ],
+      "output": "%$#@!"
+    },
+    {
+      "input": [
+        "  spaces  "
+      ],
+      "output": "  secaps  "
+    }
   ],
   "passed": 0,
   "code": {
