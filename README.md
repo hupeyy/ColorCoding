@@ -14,10 +14,13 @@ git clone
 
 2. Install NPM packages
 ```sh
+cd backend
+npm install
+cd ..
 npm install
 ```
 
-3. Run the app
+3. Run the app in the root directory
 ```sh
 npm run dev
 ```

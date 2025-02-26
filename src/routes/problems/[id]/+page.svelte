@@ -25,65 +25,6 @@
     //   selectedLanguage = target.value;
     //   code = problem.starterCode[selectedLanguage];
     // }
-    
-    async function handleSubmit() {
-      const submittedCode = editorComponent.getCode();
-      console.log('Submitted code:\n', submittedCode);
-      console.log('Language:', selectedLanguage);
-      saveCode();
-      
-      try {
-        const response = await fetch('http://localhost:3000/execute', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            code: submittedCode,
-            language: selectedLanguage,
-            testCases: problem.testCases,
-            problemID: problem.id
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Execution failed');
-        }
-
-        const result = await response.json();
-        console.log('Execution result:', result);
-        executionResult = result;
-        error = null;
-        problem.passed = result.passed;
-      } catch (err) {
-        console.error('Error executing code:', err);
-        error = err instanceof Error ? err.message : String(err);
-        executionResult = null;
-      }
-    }
-
-    async function saveCode() {
-      const submittedCode = editorComponent.getCode();
-      console.log('Submitted code:\n', submittedCode);
-      console.log('Language:', selectedLanguage);
-      
-      try {
-        const response = await fetch('http://localhost:3000/save', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            code: submittedCode,
-            problemID: problem.id,
-            language: selectedLanguage,
-          })
-        });
-      } catch (err) {
-        console.error('Error saving code:', err);
-        error = err instanceof Error ? err.message : String(err);
-      }
-    }
 </script>
 
 <!-- Add later when multi-language support is working -->
@@ -126,8 +67,8 @@
       <Resizable.Pane defaultSize={100}>
         <ScrollArea>
         <div class="flex flex-row justify-between p-4">
-          <Button on:click={handleSubmit}>Submit Solution</Button>
-          <Button on:click={saveCode}>Save Code</Button>
+          <Button>Submit Solution</Button>
+          <Button>Save Code</Button>
         </div>
         {#if executionResult}
           <div>
