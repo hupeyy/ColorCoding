@@ -24,6 +24,6 @@ export const load: PageServerLoad = async () => {
     return { problems: sortedProblems };
   } catch (err) {
     console.error(err);
-    throw error(500, 'Error loading problems');
+    error(500, 'Error loading problems');
   }
 };
