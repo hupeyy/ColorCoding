@@ -5,7 +5,7 @@
   let windowWidth = 0;
   let rows = 1;
   let columns = 1;
-  let tileSize = 32; // Default size
+  let tileSize = 32;
   let mounted = false;
 
   function updateGridDimensions() {
@@ -52,7 +52,7 @@
   });
 </script>
 
-<style>
+<style lang="postcss">
   .grid {
     display: grid;
     grid-template-columns: var(--columns, repeat(1, 1fr));
@@ -69,6 +69,10 @@
     border: 2px solid black;
     box-sizing: border-box;
   }
+
+  .button {
+    @apply grow border-black border-2 rounded-lg p-2;
+  }
 </style>
 
 <svelte:head>
@@ -82,11 +86,32 @@
 </svelte:head>
 
 {#if mounted}
+<div>
   <div class="grid">
     {#each Array(Math.floor(rows * columns)) as _, i}
       <div class="tile" style="background-color: {getRandomColor()};"></div>
     {/each}
   </div>
+  <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
+    <div class="bg-white p-2 shadow-lg text-center text-6xl ">
+        ColorCode
+      <div class="text-xl font-light text-center">
+        Presented by ColorStack UF
+      </div>
+    </div>
+    <div>
+      <div class="flex flex-row gap-4 text-center mt-4 rounded-lg shadow-lg text-black text-2xl">
+        <button class="bg-green-500 button">
+          Sign In 
+        </button>
+        <button class="bg-blue-500 button">
+          Sign Up 
+        </button>
+      </div>
+    </div>
+  </div>
+  
+</div>
 {:else}
   <div>Loading...</div>
 {/if}
