@@ -1,47 +1,92 @@
-<script lang='ts'>
-    import type { PageData } from './$types';
-    import * as Table from '$lib/components/ui/table';
-    import { Label } from '$lib/components/ui/label';
+<script>
+  import { onMount } from 'svelte';
 
-    export let data: PageData;
-    const problems = data.problems || [];
+  let windowHeight = 0;
+  let windowWidth = 0;
+  let rows = 1;
+  let columns = 1;
+  let tileSize = 32; // Default size
+  let mounted = false;
 
-    var totalScore = 0;
-
-    for (let i = 0; i < problems.length; i++) {
-        let multiplier = 1;
-        if (problems[i].difficulty === 'Medium') {
-            multiplier = 2;
-        } else if (problems[i].difficulty === 'Hard') {
-            multiplier = 5;
-        }
-        totalScore += problems[i].passed * multiplier * 100;
+  function updateGridDimensions() {
+    // Calculate how many tiles can fit in the window
+    columns = Math.floor(windowWidth / tileSize);
+    rows = Math.floor(windowHeight / tileSize);
+    
+    // Recalculate tile size to fill the entire screen width/height
+    const newTileWidth = windowWidth / columns;
+    const newTileHeight = windowHeight / rows;
+    
+    // Use the smaller of the two to maintain square tiles
+    tileSize = Math.min(newTileWidth, newTileHeight);
+    
+    if (mounted) {
+      document.documentElement.style.setProperty('--columns', `repeat(${columns}, 1fr)`);
+      document.documentElement.style.setProperty('--rows', `repeat(${rows}, 1fr)`);
+      document.documentElement.style.setProperty('--tile-size', `${tileSize}px`);
     }
+  }
 
+  function getRandomColor() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  onMount(() => {
+    mounted = true;
+    windowHeight = window.innerHeight;
+    windowWidth = window.innerWidth;
+    updateGridDimensions();
+
+    window.addEventListener('resize', () => {
+      windowHeight = window.innerHeight;
+      windowWidth = window.innerWidth;
+      updateGridDimensions();
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateGridDimensions);
+    };
+  });
 </script>
 
-<h1 class="text-2xl">Problem List</h1>
-<Table.Root>
-    <Table.Header>
-        <Table.Row>
-            <Table.Head>Name</Table.Head>
-            <Table.Head>Difficulty</Table.Head>
-            <Table.Head>Completed</Table.Head>
-        </Table.Row>
-    </Table.Header>
-    <Table.Body>
-        {#each problems as problem}
-            <Table.Row on:click={() => window.location.href = `/problems/${problem.id}`}>
-                <Table.Cell>{problem.title}</Table.Cell>
-                <Table.Cell>{problem.difficulty}</Table.Cell>
-                <Table.Cell>
-                    {problem.passed} / {problem.testCases.length} 
-                </Table.Cell>
-            </Table.Row>
-        {/each}
-    </Table.Body>
-</Table.Root>
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: var(--columns, repeat(1, 1fr));
+    grid-template-rows: var(--rows, repeat(1, 1fr));
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
 
-<Label>
-    Total Score: {totalScore}
-</Label>
+  .tile {
+    width: var(--tile-size, 32px);
+    height: var(--tile-size, 32px);
+    border: 2px solid black;
+    box-sizing: border-box;
+  }
+</style>
+
+<svelte:head>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</svelte:head>
+
+{#if mounted}
+  <div class="grid">
+    {#each Array(Math.floor(rows * columns)) as _, i}
+      <div class="tile" style="background-color: {getRandomColor()};"></div>
+    {/each}
+  </div>
+{:else}
+  <div>Loading...</div>
+{/if}

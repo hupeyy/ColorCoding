@@ -1,4 +1,3 @@
-
 <script>
 	// Source Code:
   // 'With love, Sony AK <sony@sony-ak.com> GitHub https://github.com/sonyarianto'

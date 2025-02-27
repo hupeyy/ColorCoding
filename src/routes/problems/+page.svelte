@@ -1,13 +1,10 @@
 <script lang="ts">
-    import type { PageData } from './$types';
     import MonacoEditor from '$lib/components/MonacoEditor.svelte';
     import { ScrollArea } from '$lib/components/ui/scroll-area';
     import * as Resizable from "$lib/components/ui/resizable";
     import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
     import { Button } from '$lib/components/ui/button';
     
-    export let data: PageData;
-    let { problem } = data;
     
     let editorComponent: MonacoEditor;
     
@@ -16,7 +13,7 @@
     ];
 
     let selectedLanguage = languages[0].value; 
-    let code = problem.code[selectedLanguage];
+    let code = "hi";
     let executionResult: { output: string; passed: number; total: number } | null = null;
     let error: string | null = null;
 
@@ -39,16 +36,16 @@
 <div class="h-[85vh]">
 <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
   <Resizable.Pane defaultSize={40}>
-    <h1 class="text-3xl">{problem.title}</h1>
-    <h2 class="pb-8">Difficulty: {problem.difficulty}</h2>
-    <p class="pb-8">{problem.description}</p>
+    <h1 class="text-3xl">Problem Title</h1>
+    <h2 class="pb-8">Difficulty:</h2>
+    <p class="pb-8">Description</p>
     <h2 class="text-2xl">Test Cases</h2>
     <ul>
       <!-- print only the first three test cases -->
-      {#each problem.testCases.slice(0, 3) as testCase}
+      {#each Array(3) as _, index}  
         <li class="p-4">
-          <p>Input: {testCase.input}</p>
-          <p>Output: {testCase.output}</p>
+          <p>Input:</p>
+          <p>output:</p>
         </li>
       {/each}
     </ul>
