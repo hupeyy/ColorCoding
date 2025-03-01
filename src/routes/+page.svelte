@@ -7,6 +7,7 @@
   let columns = 1;
   let tileSize = 32;
   let mounted = false;
+  let registering = false;
 
   function updateGridDimensions() {
     // Calculate how many tiles can fit in the window
@@ -59,8 +60,6 @@
     grid-template-rows: var(--rows, repeat(1, 1fr));
     width: 100vw;
     height: 100vh;
-    margin: 0;
-    padding: 0;
   }
 
   .tile {
@@ -78,8 +77,6 @@
 <svelte:head>
   <style>
     body, html {
-      margin: 0;
-      padding: 0;
       overflow: hidden;
     }
   </style>
@@ -92,24 +89,42 @@
       <div class="tile" style="background-color: {getRandomColor()};"></div>
     {/each}
   </div>
-  <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
+  <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
     <div class="bg-white p-2 shadow-lg text-center text-6xl ">
-        ColorCode
+        ColorCoding
       <div class="text-xl font-light text-center">
         Presented by ColorStack UF
       </div>
     </div>
     <div>
       <div class="flex flex-row gap-4 text-center mt-4 rounded-lg shadow-lg text-black text-2xl">
-        <button class="bg-green-500 button">
+        <button 
+          class="bg-green-500 button"
+          on:click={() => {
+            window.location.href = '/lobby';
+          }}
+        >
           Sign In 
         </button>
-        <button class="bg-blue-500 button">
+        <button 
+          class="bg-blue-500 button"
+          on:click={() => {
+            registering = true; 
+          }}
+        >
           Sign Up 
         </button>
       </div>
     </div>
   </div>
+  {#if registering}
+    <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-xl shadow-lg">
+      <div class="text-center text-2xl font-bold">
+        Register
+      </div>
+      
+    </div>
+  {/if}
   
 </div>
 {:else}
