@@ -1,47 +1,132 @@
-<script lang='ts'>
-    import type { PageData } from './$types';
-    import * as Table from '$lib/components/ui/table';
-    import { Label } from '$lib/components/ui/label';
+<script>
+  import { onMount } from 'svelte';
 
-    export let data: PageData;
-    const problems = data.problems || [];
+  let windowHeight = 0;
+  let windowWidth = 0;
+  let rows = 1;
+  let columns = 1;
+  let tileSize = 32;
+  let mounted = false;
+  let registering = false;
 
-    var totalScore = 0;
-
-    for (let i = 0; i < problems.length; i++) {
-        let multiplier = 1;
-        if (problems[i].difficulty === 'Medium') {
-            multiplier = 2;
-        } else if (problems[i].difficulty === 'Hard') {
-            multiplier = 5;
-        }
-        totalScore += problems[i].passed * multiplier * 100;
+  function updateGridDimensions() {
+    // Calculate how many tiles can fit in the window
+    columns = Math.floor(windowWidth / tileSize);
+    rows = Math.floor(windowHeight / tileSize);
+    
+    // Recalculate tile size to fill the entire screen width/height
+    const newTileWidth = windowWidth / columns;
+    const newTileHeight = windowHeight / rows;
+    
+    // Use the smaller of the two to maintain square tiles
+    tileSize = Math.min(newTileWidth, newTileHeight);
+    
+    if (mounted) {
+      document.documentElement.style.setProperty('--columns', `repeat(${columns}, 1fr)`);
+      document.documentElement.style.setProperty('--rows', `repeat(${rows}, 1fr)`);
+      document.documentElement.style.setProperty('--tile-size', `${tileSize}px`);
     }
+  }
 
+  function getRandomColor() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  onMount(() => {
+    mounted = true;
+    windowHeight = window.innerHeight;
+    windowWidth = window.innerWidth;
+    updateGridDimensions();
+
+    window.addEventListener('resize', () => {
+      windowHeight = window.innerHeight;
+      windowWidth = window.innerWidth;
+      updateGridDimensions();
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateGridDimensions);
+    };
+  });
 </script>
 
-<h1 class="text-2xl">Problem List</h1>
-<Table.Root>
-    <Table.Header>
-        <Table.Row>
-            <Table.Head>Name</Table.Head>
-            <Table.Head>Difficulty</Table.Head>
-            <Table.Head>Completed</Table.Head>
-        </Table.Row>
-    </Table.Header>
-    <Table.Body>
-        {#each problems as problem}
-            <Table.Row on:click={() => window.location.href = `/problems/${problem.id}`}>
-                <Table.Cell>{problem.title}</Table.Cell>
-                <Table.Cell>{problem.difficulty}</Table.Cell>
-                <Table.Cell>
-                    {problem.passed} / {problem.testCases.length} 
-                </Table.Cell>
-            </Table.Row>
-        {/each}
-    </Table.Body>
-</Table.Root>
+<style lang="postcss">
+  .grid {
+    display: grid;
+    grid-template-columns: var(--columns, repeat(1, 1fr));
+    grid-template-rows: var(--rows, repeat(1, 1fr));
+    width: 100vw;
+    height: 100vh;
+  }
 
-<Label>
-    Total Score: {totalScore}
-</Label>
+  .tile {
+    width: var(--tile-size, 32px);
+    height: var(--tile-size, 32px);
+    border: 2px solid black;
+    box-sizing: border-box;
+  }
+
+  .button {
+    @apply grow border-black border-2 rounded-lg p-2;
+  }
+</style>
+
+<svelte:head>
+  <style>
+    body, html {
+      overflow: hidden;
+    }
+  </style>
+</svelte:head>
+
+{#if mounted}
+<div>
+  <div class="grid">
+    {#each Array(Math.floor(rows * columns)) as _, i}
+      <div class="tile" style="background-color: {getRandomColor()};"></div>
+    {/each}
+  </div>
+  <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
+    <div class="bg-white p-2 shadow-lg text-center text-6xl ">
+        ColorCoding
+      <div class="text-xl font-light text-center">
+        Presented by ColorStack UF
+      </div>
+    </div>
+    <div>
+      <div class="flex flex-row gap-4 text-center mt-4 rounded-lg shadow-lg text-black text-2xl">
+        <button 
+          class="bg-green-500 button"
+          on:click={() => {
+            window.location.href = '/lobby';
+          }}
+        >
+          Sign In 
+        </button>
+        <button 
+          class="bg-blue-500 button"
+          on:click={() => {
+            registering = true; 
+          }}
+        >
+          Sign Up 
+        </button>
+      </div>
+    </div>
+  </div>
+  {#if registering}
+    <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-xl shadow-lg">
+      <div class="text-center text-2xl font-bold">
+        Register
+      </div>
+      
+    </div>
+  {/if}
+  
+</div>
+{:else}
+  <div>Loading...</div>
+{/if}
