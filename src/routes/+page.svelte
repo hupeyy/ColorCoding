@@ -1,78 +1,43 @@
 <script>
   import { onMount } from 'svelte';
+  import { Button } from '$lib/components/ui/button';
 
-  let windowHeight = 0;
-  let windowWidth = 0;
-  let rows = 1;
-  let columns = 1;
-  let tileSize = 32;
+  let rows = 16;
+  let columns = 16;
+  let tileSize = 64;
   let mounted = false;
   let registering = false;
 
-  function updateGridDimensions() {
-    // Calculate how many tiles can fit in the window
-    columns = Math.floor(windowWidth / tileSize);
-    rows = Math.floor(windowHeight / tileSize);
-    
-    // Recalculate tile size to fill the entire screen width/height
-    const newTileWidth = windowWidth / columns;
-    const newTileHeight = windowHeight / rows;
-    
-    // Use the smaller of the two to maintain square tiles
-    tileSize = Math.min(newTileWidth, newTileHeight);
-    
-    if (mounted) {
-      document.documentElement.style.setProperty('--columns', `repeat(${columns}, 1fr)`);
-      document.documentElement.style.setProperty('--rows', `repeat(${rows}, 1fr)`);
-      document.documentElement.style.setProperty('--tile-size', `${tileSize}px`);
-    }
-  }
-
-  function getRandomColor() {
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    return `rgb(${r}, ${g}, ${b})`;
-  }
-
+  let tiles = [];
+  
   onMount(() => {
     mounted = true;
-    windowHeight = window.innerHeight;
-    windowWidth = window.innerWidth;
-    updateGridDimensions();
-
-    window.addEventListener('resize', () => {
-      windowHeight = window.innerHeight;
-      windowWidth = window.innerWidth;
-      updateGridDimensions();
-    });
-
-    return () => {
-      window.removeEventListener('resize', updateGridDimensions);
-    };
   });
 </script>
 
 <style lang="postcss">
   .grid {
     display: grid;
-    grid-template-columns: var(--columns, repeat(1, 1fr));
-    grid-template-rows: var(--rows, repeat(1, 1fr));
     width: 100vw;
     height: 100vh;
   }
 
   .tile {
-    width: var(--tile-size, 32px);
-    height: var(--tile-size, 32px);
-    border: 2px solid black;
     box-sizing: border-box;
+    background-color: white;
+    animation: wave-effect 1s ease-out forwards;
+    animation-play-state: running;
+    transform-origin: center;
   }
 
-  .button {
-    @apply grow border-black border-2 rounded-lg p-2;
+  .tile:hover {
+    animation-name: tile-hover;
+    background-color: black;
+    animation-duration: 0.5s;
+    animation-timing-function: ease-in-out;
   }
 </style>
+
 
 <svelte:head>
   <style>
@@ -84,9 +49,13 @@
 
 {#if mounted}
 <div>
-  <div class="grid">
+  <div 
+    class="grid"
+    style="grid-template-columns: repeat({columns}, 1fr); grid-template-rows: repeat({rows}, 1fr);"
+  >
+
     {#each Array(Math.floor(rows * columns)) as _, i}
-      <div class="tile" style="background-color: {getRandomColor()};"></div>
+      <div bind:this="{tiles[i]}" class="tile"></div>
     {/each}
   </div>
   <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
@@ -98,22 +67,22 @@
     </div>
     <div>
       <div class="flex flex-row gap-4 text-center mt-4 rounded-lg shadow-lg text-black text-2xl">
-        <button 
-          class="bg-green-500 button"
+        <Button 
+          class="bg-green-500 grow text-lg"
           on:click={() => {
             window.location.href = '/lobby';
           }}
         >
           Sign In 
-        </button>
-        <button 
-          class="bg-blue-500 button"
+        </Button>
+        <Button 
+          class="bg-blue-500 grow text-lg"
           on:click={() => {
             registering = true; 
           }}
         >
           Sign Up 
-        </button>
+        </Button>
       </div>
     </div>
   </div>
