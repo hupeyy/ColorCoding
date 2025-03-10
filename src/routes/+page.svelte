@@ -1,30 +1,40 @@
 <script>
   import { onMount } from 'svelte';
+  import { spring } from 'svelte/motion';
   import { Button } from '$lib/components/ui/button';
 
-  let rows = 16;
-  let columns = 16;
+  let rows = 32;
+  let columns = 32;
   let tileSize = 64;
   let mounted = false;
   let registering = false;
 
   let tiles = [];
+  let mousePosition = spring({ x: 0, y: 0 });
   
   onMount(() => {
     mounted = true;
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
   });
+
+  const handleMouseMove = (event) => {
+    mousePosition.set({ x: event.clientX, y: event.clientY });
+  }
 </script>
 
 <style lang="postcss">
   .grid {
-    display: grid;
-    width: 100vw;
-    height: 100vh;
+    @apply fixed w-screen h-screen top-[-25vh] left-[-25vw] gap-0;
   }
 
   .tile {
     box-sizing: border-box;
-    background-color: white;
+    background-color: rgb(245, 124, 32);
     animation: wave-effect 1s ease-out forwards;
     animation-play-state: running;
     transform-origin: center;
@@ -32,7 +42,7 @@
 
   .tile:hover {
     animation-name: tile-hover;
-    background-color: black;
+    background-color: rgb(21, 136, 230);
     animation-duration: 0.5s;
     animation-timing-function: ease-in-out;
   }
@@ -48,16 +58,23 @@
 </svelte:head>
 
 {#if mounted}
-<div>
+<div class="bg-[#f57c20] w-screen h-screen">
   <div 
     class="grid"
-    style="grid-template-columns: repeat({columns}, 1fr); grid-template-rows: repeat({rows}, 1fr);"
+    style="
+      grid-template-columns: repeat({columns}, 1fr); 
+      grid-template-rows: repeat({rows}, 1fr);
+      transform: translate(
+        {-($mousePosition.x - window.innerWidth / 2) / 20}px, 
+        {-($mousePosition.y - window.innerHeight / 2) / 20}px
+      );
+    "
   >
-
     {#each Array(Math.floor(rows * columns)) as _, i}
-      <div bind:this="{tiles[i]}" class="tile"></div>
+      <div bind:this="{tiles[i]}" class="tile" style="height:{tileSize}px; width:{tileSize}px"></div>
     {/each}
   </div>
+
   <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
     <div class="bg-white p-2 shadow-lg text-center text-6xl ">
         ColorCoding
