@@ -3,18 +3,23 @@
   import { spring } from 'svelte/motion';
   import { Button } from '$lib/components/ui/button';
 
-  let rows = 32;
-  let columns = 32;
+  let gridSize = 64;
   let tileSize = 64;
   let mounted = false;
   let registering = false;
 
   let tiles = [];
   let mousePosition = spring({ x: 0, y: 0 });
+  let palette = [
+    "0BA7C2",
+    "8D80AD",
+    "157145",
+    "DEF6CA",
+    "DE9A2D"
+  ]
   
   onMount(() => {
     mounted = true;
-
     window.addEventListener('mousemove', handleMouseMove);
 
     return () => {
@@ -38,13 +43,7 @@
     animation: wave-effect 1s ease-out forwards;
     animation-play-state: running;
     transform-origin: center;
-  }
-
-  .tile:hover {
-    animation-name: tile-hover;
-    background-color: rgb(21, 136, 230);
-    animation-duration: 0.5s;
-    animation-timing-function: ease-in-out;
+    border: black 2px solid;
   }
 </style>
 
@@ -58,20 +57,25 @@
 </svelte:head>
 
 {#if mounted}
-<div class="bg-[#f57c20] w-screen h-screen">
+<div class="w-screen h-screen">
   <div 
     class="grid"
     style="
-      grid-template-columns: repeat({columns}, 1fr); 
-      grid-template-rows: repeat({rows}, 1fr);
+      grid-template-columns: repeat({gridSize}, 1fr); 
+      grid-template-rows: repeat({gridSize}, 1fr);
       transform: translate(
         {-($mousePosition.x - window.innerWidth / 2) / 20}px, 
         {-($mousePosition.y - window.innerHeight / 2) / 20}px
       );
     "
   >
-    {#each Array(Math.floor(rows * columns)) as _, i}
-      <div bind:this="{tiles[i]}" class="tile" style="height:{tileSize}px; width:{tileSize}px"></div>
+    {#each Array(Math.floor(gridSize ** 2)) as _, i}
+      <div 
+        bind:this="{tiles[i]}"
+        class="tile"
+        style="height:{tileSize}px; width:{tileSize}px; background-color:#{palette[Math.floor(Math.random() * palette.length)]}"
+      >
+      </div>
     {/each}
   </div>
 
