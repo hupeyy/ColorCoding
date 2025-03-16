@@ -79,15 +79,15 @@
     {/each}
   </div>
 
-  <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
-    <div class="bg-white p-2 shadow-lg text-center text-6xl ">
+  <div class="fixed bg-white shadow-lg p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
+    <div class="bg-white p-2 text-center text-6xl ">
         ColorCoding
       <div class="text-xl font-light text-center">
         Presented by ColorStack UF
       </div>
     </div>
     <div>
-      <div class="flex flex-row gap-4 text-center mt-4 rounded-lg shadow-lg text-black text-2xl">
+      <div class="flex flex-row gap-4 text-center mt-4 rounded-lg text-black text-2xl">
         <Button 
           class="bg-green-500 grow text-lg"
           on:click={() => {

@@ -1,32 +1,41 @@
-<script lang='ts'>
+<script lang="ts">
+    import { onMount } from 'svelte';
+    import { lobbies, getLobbies } from '$lib/firebase';
     import * as Table from '$lib/components/ui/table';
-    import { Label } from '$lib/components/ui/label';
 
-    var totalScore = 0;
+    onMount(() => {
+        const unsubscribe = getLobbies();
+        return unsubscribe;
+    });
+
+    const headers = ['DSA', 'createdAt', 'userIDs']
+    $: {
+        console.log($lobbies);
+    }
 </script>
 
-<h1 class="text-2xl">Problem List</h1>
-<Table.Root>
-    <Table.Header>
-        <Table.Row>
-            <Table.Head>Name</Table.Head>
-            <Table.Head>Difficulty</Table.Head>
-            <Table.Head>Completed</Table.Head>
-        </Table.Row>
-    </Table.Header>
-    <Table.Body>
-        {#each Array(3) as problem}
-            <Table.Row on:click={() => window.location.href = `/problems`}>
-                <Table.Cell>Title</Table.Cell>
-                <Table.Cell>Easy</Table.Cell>
-                <Table.Cell>
-                    Passed / Total
-                </Table.Cell>
+{#if $lobbies === null}
+    <p>Loading...</p>
+{:else if $lobbies.length === 0}
+    <p>No lobbies found.</p>
+{:else}
+    <Table.Root>
+        <Table.Caption>A list of your recent invoices.</Table.Caption>
+        <Table.Header>
+            <Table.Row>
+                {#each headers as header}
+                    <Table.Head>{header}</Table.Head>
+                {/each}
             </Table.Row>
-        {/each}
-    </Table.Body>
-</Table.Root>
-
-<Label>
-    Total Score: {totalScore}
-</Label>
+        </Table.Header>
+        <Table.Body>
+            <Table.Row>
+                {#each $lobbies as lobby}
+                    {#each headers as header}
+                        <Table.Cell>{lobby[header]}</Table.Cell>
+                    {/each}
+                {/each}
+            </Table.Row>
+        </Table.Body>
+    </Table.Root>
+{/if}
