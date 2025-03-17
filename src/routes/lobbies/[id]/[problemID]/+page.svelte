@@ -4,9 +4,10 @@
   import * as Resizable from "$lib/components/ui/resizable";
   import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { page } from '$app/state';
+  import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { problems, getProblems } from '$lib/firebase';
+  import testUtils from 'react-dom/test-utils';
     
   let editorComponent: MonacoEditor;
   
@@ -18,7 +19,19 @@
   let code = "hi";
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
-  let problemID: string | undefined;
+
+  $:problemID = $page.params.problemID;
+  let problem: Problem;
+  let testCases = [];
+  $: {
+    if ($problems) {
+      problem = $problems.find(p => p.id === problemID);
+      testCases = problem["inputs"].map(function(input, index) {
+        return { input: input, output: problem["outputs"][index] };
+      });
+      console.log(testCases);
+    }
+  }
 
   onMount(() => {
     const unsubscribe = getProblems()
@@ -41,23 +54,20 @@
     {/each}
   </select>
 </div> -->
-{#if problemID === undefined}
+{#if problem === undefined}
   <p>Loading...</p>
 {:else}
   <div class="h-[85vh]">
   <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
     <Resizable.Pane defaultSize={40}>
-      <h1 class="text-3xl">Title</h1>
-      <h2 class="pb-8">Difficulty:</h2>
-      <p class="pb-8">Description</p>
+      <h1 class="text-3xl">{problem["title"]}</h1>
+      <h2 class="pb-8">Difficulty: {problem["difficulty"]}</h2>
+      <p class="pb-8">{problem["description"]}</p>
       <h2 class="text-2xl">Test Cases</h2>
       <ul>
-        <!-- print only the first three test cases -->
-        {#each Array(3) as _, index}  
-          <li class="p-4">
-            <p>Input:</p>
-            <p>output:</p>
-          </li>
+        {#each testCases as testCase}
+          <li>Input: {testCase["input"]}</li>
+          <li>Expected Output: {testCase["output"]}</li>
         {/each}
       </ul>
     </Resizable.Pane>
