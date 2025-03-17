@@ -91,7 +91,7 @@
         <Button 
           class="bg-green-500 grow text-lg"
           on:click={() => {
-            window.location.href = '/lobby';
+            window.location.href = '/lobbies';
           }}
         >
           Sign In 
@@ -112,10 +112,8 @@
       <div class="text-center text-2xl font-bold">
         Register
       </div>
-      
     </div>
   {/if}
-  
 </div>
 {:else}
   <div>Loading...</div>

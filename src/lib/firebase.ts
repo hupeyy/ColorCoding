@@ -18,7 +18,8 @@ import {
     query,
     serverTimestamp,
     updateDoc,
-    where
+    where,
+    getDocs
 } from 'firebase/firestore';
 import { PUBLIC_FIREBASE_CONFIG } from '$env/static/public';
 
@@ -42,11 +43,32 @@ export function getLobbies() {
             const lobbyData = snapshot.empty
                 ? []
                 : snapshot.docs.map((doc) => ({
+                    id: doc.id,
                     ...doc.data(),
                   })) as Lobby[];
             lobbies.set(lobbyData);
         }
     );
 
+    return () => unsubscribe();
+}
+
+export const problems = writable<Problem[] | null>(null);
+export function getProblems() {
+    const unsubscribe = onSnapshot(
+        query(
+            collection(db, 'problems'),
+            orderBy('title', 'asc')
+        ),
+        (snapshot) => {
+            const problemData = snapshot.empty
+                ? []
+                : snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                  })) as Problem[];
+            problems.set(problemData);
+        }
+    );
     return () => unsubscribe();
 }
