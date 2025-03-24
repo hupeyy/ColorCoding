@@ -7,7 +7,6 @@
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { problems, getProblems } from '$lib/firebase';
-  import testUtils from 'react-dom/test-utils';
     
   let editorComponent: MonacoEditor;
   
@@ -84,21 +83,21 @@
         <Resizable.Handle />
         <Resizable.Pane defaultSize={100}>
           <ScrollArea>
-          <div class="flex flex-row justify-between p-4">
-            <Button>Submit Solution</Button>
-            <Button>Save Code</Button>
-          </div>
-          {#if executionResult}
-            <div>
-              <h2>Execution Result</h2>
-              <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
+            <div class="flex flex-row justify-between p-4">
+              <Button>Submit Solution</Button>
+              <Button>Save Code</Button>
             </div>
-          {/if}
-          {#if error}
-            <div class="error">
-              <p>Error: {error}</p>
-            </div>
-          {/if}
+            {#if executionResult}
+              <div>
+                <h2>Execution Result</h2>
+                <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
+              </div>
+            {/if}
+            {#if error}
+              <div class="error">
+                <p>Error: {error}</p>
+              </div>
+            {/if}
           </ScrollArea>
         </Resizable.Pane>
       </Resizable.PaneGroup>
