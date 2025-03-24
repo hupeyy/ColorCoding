@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { lobbies, getLobbies } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
-  
+
   onMount(() => {
     const unsubscribe = getLobbies();
     return unsubscribe;
@@ -16,7 +16,6 @@
 {:else if $lobbies.length === 0}
   <p>No lobbies found.</p>
 {:else}
-  <ModeWatcher />
   <Table.Root>
     <Table.Caption>Lobbies List</Table.Caption>
     <Table.Header>
