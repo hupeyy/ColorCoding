@@ -87,7 +87,7 @@ export async function createLobby(host: LobbyPlayer, name: string, maxPlayers: n
     // Lobby document to be added to collection 'guestLobbies' on Firebase
     const newLobby: Omit<Lobby, 'id'> = {
         DSA,
-        userIDs: [host.displayName],// displayName for now
+        userIDs: [host.id],
         createdAt: serverTimestamp(),
         status: 'waiting',
         maxPlayers,
@@ -115,7 +115,7 @@ export async function joinLobby(lobbyId: string, player: LobbyPlayer) {
     if(lobby.players.length >= lobby.maxPlayers) {throw new Error("Lobby is full");}
 
     const updatePlayers = [...lobby.players, player];
-    const updateuserIDs = [...lobby.userIDs, player.displayName];
+    const updateuserIDs = [...lobby.userIDs, player.id];
 
     await updateDoc(lobbyref, {
         players: updatePlayers,

@@ -8,7 +8,7 @@
     let lobbyName = '';
     let maxPlayers = 100;
     let DSA = false;
-    let currName = '';
+    let currName = 'guest';
 
     function handleGuestCreation() {
         if(!displayName) return; // Must Enter a name
