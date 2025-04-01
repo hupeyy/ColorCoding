@@ -9,7 +9,6 @@ declare global {
     };
 
     type Lobby = {
-        id: string;
         DSA: boolean;
         userIDs: string[];
         problemIDs: string[];

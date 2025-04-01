@@ -76,7 +76,7 @@ export function getGuestLobbies() {
             const lobbyData = snapshot.empty
                 ? []
                 : snapshot.docs.map((doc) => ({
-                    id: doc.id,
+                    // id: doc.id,
                     ...doc.data(),
                   })) as Lobby[];
             lobbies.set(lobbyData);
@@ -86,12 +86,12 @@ export function getGuestLobbies() {
     return () => unsubscribe();
 }
 
-export async function createLobby(host: LobbyPlayer, name: string, maxPlayers: number, DSA: boolean) {
+export async function createLobby(host: LobbyPlayer, name: string, maxPlayers: number, DSA: boolean, problemIDs: string[])  {
     // Lobby document to be added to collection 'guestLobbies' on Firebase
     const newLobby: Omit<Lobby, 'id'> = {
         DSA,
         userIDs: [host.id],
-        problemIDs: problems[0].id,
+        problemIDs,
         createdAt: serverTimestamp(),
         status: 'waiting',
         maxPlayers,

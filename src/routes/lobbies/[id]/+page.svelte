@@ -11,7 +11,7 @@
 
 
   onMount(() => {
-    const unsubscribeLobbies = getLobbies();
+    const unsubscribeLobbies = getGuestLobbies();
     const unsubscribeProblems = getProblems();
 
     return () => {
