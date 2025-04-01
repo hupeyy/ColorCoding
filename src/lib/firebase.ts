@@ -19,7 +19,8 @@ import {
     serverTimestamp,
     updateDoc,
     getDoc,
-    where
+    where,
+    getDocs
 } from 'firebase/firestore';
 import { PUBLIC_FIREBASE_CONFIG } from '$env/static/public';
 
@@ -54,6 +55,7 @@ export function getLobbies() {
             const lobbyData = snapshot.empty
                 ? []
                 : snapshot.docs.map((doc) => ({
+                    id: doc.id,
                     ...doc.data(),
                   })) as Lobby[];
             lobbies.set(lobbyData);
@@ -74,6 +76,7 @@ export function getGuestLobbies() {
             const lobbyData = snapshot.empty
                 ? []
                 : snapshot.docs.map((doc) => ({
+                    id: doc.id,
                     ...doc.data(),
                   })) as Lobby[];
             lobbies.set(lobbyData);
@@ -88,6 +91,7 @@ export async function createLobby(host: LobbyPlayer, name: string, maxPlayers: n
     const newLobby: Omit<Lobby, 'id'> = {
         DSA,
         userIDs: [host.id],
+        problemIDs: problems[0].id,
         createdAt: serverTimestamp(),
         status: 'waiting',
         maxPlayers,
@@ -97,6 +101,7 @@ export async function createLobby(host: LobbyPlayer, name: string, maxPlayers: n
     };
     // Add this guestLobby doc to collection 'guestLobbies' in Firebase
     const lobbyref = await addDoc(collection(db, 'guestLobbies'), newLobby);
+    // Add the lobby's id to firebase
     await updateDoc(lobbyref, {id: lobbyref.id});
     return lobbyref.id;
 }
@@ -121,4 +126,24 @@ export async function joinLobby(lobbyId: string, player: LobbyPlayer) {
         players: updatePlayers,
         userIDs: updateuserIDs
     });
+}
+
+export const problems = writable<Problem[] | null>(null);
+export function getProblems() {
+    const unsubscribe = onSnapshot(
+        query(
+            collection(db, 'problems'),
+            orderBy('title', 'asc')
+        ),
+        (snapshot) => {
+            const problemData = snapshot.empty
+                ? []
+                : snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                  })) as Problem[];
+            problems.set(problemData);
+        }
+    );
+    return () => unsubscribe();
 }

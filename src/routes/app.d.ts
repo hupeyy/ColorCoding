@@ -9,8 +9,10 @@ declare global {
     };
 
     type Lobby = {
+        id: string;
         DSA: boolean;
         userIDs: string[];
+        problemIDs: string[];
         createdAt: serverTimestamp;
         status: LobbyStatus;
         maxPlayers: number;
@@ -18,6 +20,13 @@ declare global {
         host: LobbyPlayer;
         id: string;
         name: string;
+    }
+
+    type Problem = {
+        id: string;
+        title: string;
+        description: string;
+        testCases: string[];
     }
 }
 
