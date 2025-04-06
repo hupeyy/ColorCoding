@@ -1,8 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { lobbies, getLobbies, createGuest, createLobby, guestUser, joinLobby, getGuestLobbies, problems } from '$lib/firebase';
+  import { 
+    lobbies,
+    createGuest, 
+    createLobby,
+    guestUser,
+    joinLobby, 
+    getGuestLobbies,
+    problems
+  } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
   import { Button } from '$lib/components/ui/button';
+  import { on } from 'svelte/events';
 
   let displayName = '';
   let lobbyName = '';
@@ -18,7 +27,37 @@
     
   async function handleLobbyCreation() {
     if(!$guestUser) return; // Must press Set Name button before trying to create lobby
-    await createLobby($guestUser, lobbyName, maxPlayers, DSA, ['XPG3fiuQvIuo8NYBKs82']);
+
+    let problemIDs = [];
+
+    // get 5 random easy problems from the database
+    const easyProblems = $problems.filter(problem => problem.difficulty === 'easy');
+    const shuffledEasyProblems = easyProblems.sort(() => Math.random() - 0.5);
+    const selectedEasyProblems = shuffledEasyProblems.slice(0, 5);
+
+    // get 3 random medium problems from the database 
+    const medProblems = $problems.filter(problem => problem.difficulty === 'medium');
+    const shuffledMedProblems = medProblems.sort(() => Math.random() - 0.5);
+    const selectedMedProblems = shuffledMedProblems.slice(0, 3);
+
+    // get 1 random hard problem from the database
+    const hardProblems = $problems.filter(problem => problem.difficulty === 'hard');
+    const shuffledHardProblems = hardProblems.sort(() => Math.random() - 0.5);
+    const selectedHardProblems = shuffledHardProblems.slice(0, 1);
+
+    for (let i = 0; i < selectedEasyProblems.length; i++) {
+      problemIDs.push(selectedEasyProblems[i].id);
+    }
+
+    for (let i = 0; i < selectedMedProblems.length; i++) {
+      problemIDs.push(selectedMedProblems[i].id);
+    }
+
+    for (let i = 0; i < selectedHardProblems.length; i++) {
+      problemIDs.push(selectedHardProblems[i].id);
+    }
+
+    await createLobby($guestUser, lobbyName, maxPlayers, DSA, problemIDs);
   }
 
   async function handleLobbyJoin(lobbyId: string) {

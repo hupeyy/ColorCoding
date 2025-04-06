@@ -129,7 +129,8 @@ export async function joinLobby(lobbyId: string, player: LobbyPlayer) {
 }
 
 export const problems = writable<Problem[] | null>(null);
-export function getProblems() {
+
+export async function getProblems() {
     const unsubscribe = onSnapshot(
         query(
             collection(db, 'problems'),
@@ -146,4 +147,9 @@ export function getProblems() {
         }
     );
     return () => unsubscribe();
+}
+
+export async function createProblem(problem: Omit<Problem, 'id'>) {
+    const problemRef = await addDoc(collection(db, 'problems'), problem);
+    await updateDoc(problemRef, {id: problemRef.id});
 }

@@ -24,8 +24,10 @@ declare global {
     type Problem = {
         id: string;
         title: string;
+        difficulty: string;
         description: string;
-        testCases: string[];
+        inputs: string[];
+        outputs: string[];
     }
 }
 

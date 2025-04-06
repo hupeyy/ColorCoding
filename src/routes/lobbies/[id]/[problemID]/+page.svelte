@@ -4,25 +4,27 @@
   import * as Resizable from "$lib/components/ui/resizable";
   import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { page } from '$app/stores';
-  import { onMount } from 'svelte';
+  import { page } from '$app/state';
   import { problems, getProblems } from '$lib/firebase';
+  import { onMount } from 'svelte';
     
-  let editorComponent: MonacoEditor;
+  let editorComponent: MonacoEditor = $state();
   
   const languages = [
     { value: 'python', label: 'Python' }
   ];
 
   let selectedLanguage = languages[0].value; 
-  let code = "hi";
+  let code = $state("hi"); // Default code for the editor
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
 
-  $:problemID = $page.params.problemID;
-  let problem: Problem;
-  let testCases = [];
-  $: {
+  let problemID = $derived(page.params.problemID);
+
+  let problem: Problem = $state();
+  let testCases = $state([]);
+
+  onMount(async () => {
     if ($problems) {
       problem = $problems.find(p => p.id === problemID);
       testCases = problem["inputs"].map(function(input, index) {
@@ -30,18 +32,8 @@
       });
       console.log(testCases);
     }
-  }
+  })
 
-  onMount(() => {
-    const unsubscribe = getProblems()
-    return unsubscribe;
-  });
-
-  // function handleLanguageChange(event: Event) {
-  //   const target = event.target as HTMLSelectElement;
-  //   selectedLanguage = target.value;
-  //   code = problem.starterCode[selectedLanguage];
-  // }
 </script>
 
 <!-- Add later when multi-language support is working -->
