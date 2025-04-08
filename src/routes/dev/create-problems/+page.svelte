@@ -1,35 +1,40 @@
 <script lang="ts">
-
-    import { onMount } from 'svelte';
-    import { problems, createProblem } from '$lib/firebase';
-    import { page } from '$app/stores';
+  import { createProblem } from '$lib/firebase';
     
-    let title = '';
-    let description = '';
-    let inputs = [];
-    let outputs = [];
-    let difficulty = 'easy';
-    let successMessage = '';
-    let errorMessage = '';
-    
-    async function handleSubmit() {
-        let problem: Omit<Problem, 'id'> = {
-            title: title,
-            description: description,
-            inputs: inputs,
-            outputs: outputs,
-            difficulty: difficulty,
-        };
+  let title = '';
+  let description = '';
+  let inputs: string;
+  let outputs: string; 
+  let difficulty = 'easy';
+  let successMessage = '';
+  let errorMessage = '';
 
-        try {
-            await createProblem(problem);
-            successMessage = 'Problem created successfully!';
-            errorMessage = '';
-        } catch (error) {
-            errorMessage = 'Error creating problem: ' + error.message;
-            successMessage = '';
-        }
+  function parseArrayInputs(inputString) {
+    return inputString.split('##').map(item => item.trim());
+  }
+ 
+
+  async function handleSubmit() {
+    const inputsParsed = parseArrayInputs(inputs);
+    const outputsParsed = parseArrayInputs(outputs);
+
+    let problem: Omit<Problem, 'id'> = {
+      title: title,
+      description: description,
+      inputs: inputsParsed,
+      outputs: outputsParsed,
+      difficulty: difficulty,
+    };
+
+    try {
+      await createProblem(problem);
+      successMessage = 'Problem created successfully!';
+      errorMessage = '';
+    } catch (error) {
+      errorMessage = 'Error creating problem: ' + error.message;
+      successMessage = '';
     }
+  }
 
 </script>
 
@@ -55,3 +60,16 @@
     <p class="text-red-500 mt-4">{errorMessage}</p>
   {/if}
 </div>
+{#if inputs}
+  <div class="mt-2 text-sm">
+    <p>Inputs Preview:</p>
+    <pre class="p-2 rounded">{JSON.stringify(parseArrayInputs(inputs), null, 2)}</pre>
+  </div>
+{/if}
+{#if outputs}
+  <div class="mt-2 text-sm">
+    <p>Outputs Preview:</p>
+    <pre class="p-2 rounded">{JSON.stringify(parseArrayInputs(outputs), null, 2)}</pre>
+  </div>
+{/if}
+

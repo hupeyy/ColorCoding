@@ -65,6 +65,7 @@ export function getLobbies() {
     return () => unsubscribe();
 }
 
+export const guestLobbies = writable<Lobby[] | null>(null);
 export function getGuestLobbies() {
     const unsubscribe = onSnapshot(
         // retrieve guestLobbies by time created descending
@@ -79,7 +80,7 @@ export function getGuestLobbies() {
                     // id: doc.id,
                     ...doc.data(),
                   })) as Lobby[];
-            lobbies.set(lobbyData);
+            guestLobbies.set(lobbyData);
         }
     );
 
@@ -129,7 +130,6 @@ export async function joinLobby(lobbyId: string, player: LobbyPlayer) {
 }
 
 export const problems = writable<Problem[] | null>(null);
-
 export async function getProblems() {
     const unsubscribe = onSnapshot(
         query(
@@ -140,7 +140,7 @@ export async function getProblems() {
             const problemData = snapshot.empty
                 ? []
                 : snapshot.docs.map((doc) => ({
-                    id: doc.id,
+                    // id: doc.id,
                     ...doc.data(),
                   })) as Problem[];
             problems.set(problemData);
@@ -152,4 +152,5 @@ export async function getProblems() {
 export async function createProblem(problem: Omit<Problem, 'id'>) {
     const problemRef = await addDoc(collection(db, 'problems'), problem);
     await updateDoc(problemRef, {id: problemRef.id});
+    return problemRef.id;
 }

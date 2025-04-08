@@ -20,80 +20,89 @@
   let error: string | null = null;
 
   let problemID = $derived(page.params.problemID);
+  let problem = $state<Problem | null>(null);
+  let testCases = $state<{input: string, output: string}[]>([]);
 
-  let problem: Problem = $state();
-  let testCases = $state([]);
-
-  onMount(async () => {
+  // Subscribe to problems store and find the specific problem
+  $effect(() => {
     if ($problems) {
-      problem = $problems.find(p => p.id === problemID);
-      testCases = problem["inputs"].map(function(input, index) {
-        return { input: input, output: problem["outputs"][index] };
-      });
-      console.log(testCases);
+      problem = $problems.find(p => p.id === problemID) || null;
+      
+      if (problem) {
+        testCases = problem.inputs.map((input, index) => ({
+          input: input,
+          output: problem.outputs[index]
+        }));
+      }
     }
-  })
+  });
 
+  let unsubscribeProblems: (() => void) | null = null;
+
+  onMount(() => {
+    getProblems().then(unsub => {
+      unsubscribeProblems = unsub;
+    });
+    
+    console.log("Problem:", problem);
+
+    return () => {
+      if (unsubscribeProblems) {
+        unsubscribeProblems();
+      }
+    };
+  });
 </script>
 
-<!-- Add later when multi-language support is working -->
-<!-- <div>
-  <label for="language-select">Select Language:</label>
-  <select id="language-select" on:change={handleLanguageChange}>
-    {#each languages as lang}
-      <option value={lang.value}>{lang.label}</option>
-    {/each}
-  </select>
-</div> -->
-{#if problem === undefined}
-  <p>Loading...</p>
+{#if !problem}
+  Loading problem...
 {:else}
   <div class="h-[85vh]">
-  <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
-    <Resizable.Pane defaultSize={40}>
-      <h1 class="text-3xl">{problem["title"]}</h1>
-      <h2 class="pb-8">Difficulty: {problem["difficulty"]}</h2>
-      <p class="pb-8">{problem["description"]}</p>
-      <h2 class="text-2xl">Test Cases</h2>
-      <ul>
-        {#each testCases as testCase}
-          <li>Input: {testCase["input"]}</li>
-          <li>Expected Output: {testCase["output"]}</li>
-        {/each}
-      </ul>
-    </Resizable.Pane>
-    <ResizableHandle />
-    <Resizable.Pane defaultSize={60}>
-      <Resizable.PaneGroup direction="vertical">
-        <Resizable.Pane defaultSize={100}>
-          <MonacoEditor
-            bind:this={editorComponent}
-            bind:code={code}
-            language={selectedLanguage}
-          />
-        </Resizable.Pane>
-        <Resizable.Handle />
-        <Resizable.Pane defaultSize={100}>
-          <ScrollArea>
-            <div class="flex flex-row justify-between p-4">
-              <Button>Submit Solution</Button>
-              <Button>Save Code</Button>
-            </div>
-            {#if executionResult}
-              <div>
-                <h2>Execution Result</h2>
-                <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
+    <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
+      <Resizable.Pane defaultSize={40}>
+        <h1 class="text-3xl">{problem["title"]}</h1>
+        <h2 class="pb-8">Difficulty: {problem["difficulty"]}</h2>
+        <p class="pb-8">{problem["description"]}</p>
+        <h2 class="text-2xl">Test Cases</h2>
+        <ul>
+          {#each testCases as testCase}
+            <li>Input: {testCase["input"]}</li>
+            <li>Expected Output: {testCase["output"]}</li>
+          {/each}
+        </ul>
+      </Resizable.Pane>
+      <ResizableHandle />
+      <Resizable.Pane defaultSize={60}>
+        <Resizable.PaneGroup direction="vertical">
+          <Resizable.Pane defaultSize={100}>
+            <MonacoEditor
+              bind:this={editorComponent}
+              bind:code={code}
+              language={selectedLanguage}
+            />
+          </Resizable.Pane>
+          <Resizable.Handle />
+          <Resizable.Pane defaultSize={100}>
+            <ScrollArea>
+              <div class="flex flex-row justify-between p-4">
+                <Button>Submit Solution</Button>
+                <Button>Save Code</Button>
               </div>
-            {/if}
-            {#if error}
-              <div class="error">
-                <p>Error: {error}</p>
-              </div>
-            {/if}
-          </ScrollArea>
-        </Resizable.Pane>
-      </Resizable.PaneGroup>
-    </Resizable.Pane>  
-  </Resizable.PaneGroup>
+              {#if executionResult}
+                <div>
+                  <h2>Execution Result</h2>
+                  <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p>
+                </div>
+              {/if}
+              {#if error}
+                <div class="error">
+                  <p>Error: {error}</p>
+                </div>
+              {/if}
+            </ScrollArea>
+          </Resizable.Pane>
+        </Resizable.PaneGroup>
+      </Resizable.Pane>  
+    </Resizable.PaneGroup>
   </div>
 {/if}
