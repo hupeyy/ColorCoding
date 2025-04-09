@@ -27,16 +27,16 @@
                         <h2 class="text-2xl">Welcome, Developer!</h2>
                         <p class="mt-2">You have successfully logged in.</p>
                     </div>
-                    <Button on:click={() => (window.location.href = "/dev/create-problems")}>
+                    <Button onclick={() => (window.location.href = "/dev/create-problems")}>
                         Create Problems
                     </Button> 
-                     <Button on:click={() => (window.location.href = "/dev/assign-problems")}>
+                     <Button onclick={() => (window.location.href = "/dev/assign-problems")}>
                         Assign Problems
                     </Button> 
                 {:else}
                     <h1 class="text-3xl font-bold mb-4">Login</h1>
                     <Input type="text" placeholder="Password" bind:value={password} class="w-128 border p-2 rounded" required />
-                    <Button on:click={handleLogin} class="bg-blue-500 text-white p-2 rounded">Login</Button>
+                    <Button onclick={handleLogin} class="bg-blue-500 text-white p-2 rounded">Login</Button>
                 {/if}
             </div>
         </Card.Content>

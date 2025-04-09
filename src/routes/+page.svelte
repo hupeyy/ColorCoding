@@ -90,7 +90,7 @@
       <div class="flex flex-row gap-4 text-center mt-4 rounded-lg text-black text-2xl">
         <Button 
           class="bg-green-500 grow text-lg"
-          on:click={() => {
+          onclick={() => {
             window.location.href = '/lobbies';
           }}
         >
@@ -98,7 +98,7 @@
         </Button>
         <Button 
           class="bg-blue-500 grow text-lg"
-          on:click={() => {
+          onclick={() => {
             registering = true; 
           }}
         >

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { 
     createGuest, 
     guestUser,
@@ -8,7 +7,7 @@
     guestLobbies,
   } from '$lib/firebase';
   import { Button } from '$lib/components/ui/button';
-  import { on } from 'svelte/events';
+  import { onMount } from 'svelte';
   import * as Table from "$lib/components/ui/table/index.js";
 
   let displayName = $state("");
