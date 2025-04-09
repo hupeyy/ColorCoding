@@ -4,7 +4,7 @@
     import * as Card from "$lib/components/ui/card";
 
     let password = $state("");
-    let login = $state(false);
+    let login = $state(true);
 
     const handleLogin = () => {
         if (password === "password") {
@@ -23,12 +23,15 @@
         <Card.Content>
             <div class="flex flex-col items-left gap-4 p-4">
                 {#if login}
-                    <div class="mt-4">
+                    <div>
                         <h2 class="text-2xl">Welcome, Developer!</h2>
                         <p class="mt-2">You have successfully logged in.</p>
                     </div>
-                    <Button class="mt-4" on:click={() => (window.location.href = "/dev/create-problems")}>
+                    <Button on:click={() => (window.location.href = "/dev/create-problems")}>
                         Create Problems
+                    </Button> 
+                     <Button on:click={() => (window.location.href = "/dev/assign-problems")}>
+                        Assign Problems
                     </Button> 
                 {:else}
                     <h1 class="text-3xl font-bold mb-4">Login</h1>
