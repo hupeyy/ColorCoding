@@ -154,3 +154,29 @@ export async function createProblem(problem: Omit<Problem, 'id'>) {
     await updateDoc(problemRef, {id: problemRef.id});
     return problemRef.id;
 }
+
+export const players = writable<Player[] | null>(null);
+export async function getPlayers() {
+    const unsubscribe = onSnapshot(
+        query(
+            collection(db, 'players'),
+            orderBy('displayName', 'asc')
+        ),
+        (snapshot) => {
+            const playerData = snapshot.empty
+                ? []
+                : snapshot.docs.map((doc) => ({
+                    // id: doc.id,
+                    ...doc.data(),
+                  })) as Player[];
+            players.set(playerData);
+        }
+    );
+    return () => unsubscribe();
+}
+
+export async function createPlayer(user: Omit<Player, 'id'>) {
+    const userRef = await addDoc(collection(db, 'players'), user);
+    await updateDoc(userRef, {id: userRef.id});
+    return userRef.id;
+}

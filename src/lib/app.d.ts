@@ -29,6 +29,14 @@ declare global {
         inputs: string[];
         outputs: string[];
     }
+
+    type Player = {
+        id: string;
+        username: string;
+        email: string;
+        password: string;
+        DSA: boolean;
+    }
 }
 
 export {};
