@@ -63,7 +63,7 @@
           <Table.Cell>{lobby.DSA}</Table.Cell>
 
           <Table.Cell>
-            <Button on:click={() => handleLobbyJoin(lobby.id)}>Join</Button>
+            <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
           </Table.Cell>
         </Table.Row>
       {/each}
@@ -82,7 +82,7 @@
     <input type="checkbox" bind:checked={DSA} />
     DSA Enabled
   </label>
-  <Button on:click={handleGuestCreation} class="px-4">Create Lobby</Button>
+  <Button onclick={handleGuestCreation} class="px-4">Create Lobby</Button>
 
   </div>
   <h2 class="flex items-center justify-center p-6">Hi, {currName}!</h2>

@@ -1,6 +1,6 @@
 import adapter from '@sveltejs/adapter-auto';
 
-/** @type {import('@sveltets/kit').Config} */
+/** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
 		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
@@ -15,3 +15,4 @@ const config = {
 };
 
 export default config;
+

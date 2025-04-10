@@ -3,7 +3,10 @@
     "module": "esnext",
     "target": "esnext",
     "strict": true,
-    "types": ["svelte"]
+    "types": ["svelte", "vite/client"],
+    "allowJs": true,
+    "checkJs": false,
+    "noImplicitAny": false
   },
   "extends": "./.svelte-kit/tsconfig.json",
   "include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.js"],
