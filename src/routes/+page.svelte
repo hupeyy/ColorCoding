@@ -1,138 +1,9 @@
-<!-- <script>
-  import { onMount } from 'svelte';
-  import { spring } from 'svelte/motion';
-  import { Button } from '$lib/components/ui/button';
-
-  let gridSize = 64;
-  let tileSize = 64;
-  let mounted = false;
-  let registering = false;
-
-  let tiles = [];
-  let mousePosition = spring({ x: 0, y: 0 });
-  let palette = [
-    "0BA7C2",
-    "8D80AD",
-    "157145",
-    "DEF6CA",
-    "DE9A2D"
-  ]
-  
-  onMount(() => {
-    mounted = true;
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  });
-
-  const handleMouseMove = (event) => {
-    mousePosition.set({ x: event.clientX, y: event.clientY });
-  }
-</script>
-
-<style lang="postcss">
-  .grid {
-    @apply fixed w-screen h-screen top-[-25vh] left-[-25vw] gap-0;
-  }
-
-  .tile {
-    box-sizing: border-box;
-    background-color: rgb(245, 124, 32);
-    animation: wave-effect 1s ease-out forwards;
-    animation-play-state: running;
-    transform-origin: center;
-    border: black 2px solid;
-  }
-</style>
-
-
-<svelte:head>
-  <style>
-    body, html {
-      overflow: hidden;
-    }
-  </style>
-</svelte:head>
-
-{#if mounted}
-<div class="w-screen h-screen">
-  <div 
-    class="grid"
-    style="
-      grid-template-columns: repeat({gridSize}, 1fr); 
-      grid-template-rows: repeat({gridSize}, 1fr);
-      transform: translate(
-        {-($mousePosition.x - window.innerWidth / 2) / 20}px, 
-        {-($mousePosition.y - window.innerHeight / 2) / 20}px
-      );
-    "
-  >
-    {#each Array(Math.floor(gridSize ** 2)) as _, i}
-      <div 
-        bind:this="{tiles[i]}"
-        class="tile"
-        style="height:{tileSize}px; width:{tileSize}px; background-color:#{palette[Math.floor(Math.random() * palette.length)]}"
-      >
-      </div>
-    {/each}
-  </div>
-
-  <div class="fixed bg-white shadow-lg p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col">
-    <div class="bg-white p-2 text-center text-6xl ">
-        ColorCoding
-      <div class="text-xl font-light text-center">
-        Presented by ColorStack UF
-      </div>
-    </div>
-    <div>
-      <div class="flex flex-row gap-4 text-center mt-4 rounded-lg text-black text-2xl">
-        <Button 
-          class="bg-green-500 grow text-lg"
-          onclick={() => {
-            window.location.href = '/lobbies';
-          }}
-        >
-          Sign In 
-        </Button>
-        <Button 
-          class="bg-blue-500 grow text-lg"
-          onclick={() => {
-            registering = true; 
-          }}
-        >
-          Sign Up 
-        </Button>
-      </div>
-    </div>
-  </div>
-  {#if registering}
-    <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-xl shadow-lg">
-      <div class="text-center text-2xl font-bold">
-        Register
-      </div>
-    </div>
-  {/if}
-</div>
-{:else}
-  <div>Loading...</div>
-{/if} -->
-
 <script lang="ts">
   import { onMount } from 'svelte';
   import { spring } from 'svelte/motion';
   import Button from "$lib/components/ui/button/button.svelte";
-  import { Mail, User, Lock } from 'lucide-svelte';
+  import { Mail, User, Lock, X } from 'lucide-svelte';
   import { createPlayer } from '$lib/firebase'
-
-  // Firebase imports
-  import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    sendEmailVerification,
-    signInWithEmailAndPassword
-  } from 'firebase/auth';
 
   let gridSize = 64;
   let tileSize = 64;
@@ -189,6 +60,14 @@
 
     try {
       createPlayer(user);
+      // Reset fields & hide sign-up section
+      email = '';
+      username = '';
+      password = '';
+      confirmPassword = '';
+      dsa = false;
+      showSignUpSection = false;
+      showSignInSection = false;
       alert("User created successfully!");
     } catch(error: any) {
       console.error("Registration error:", error);
@@ -197,7 +76,7 @@
   }
 
   // SIGN IN USER
-  async function signInUser(event: Event) {
+  async function handleSignIn() {
     // event.preventDefault();
     // try {
     //   const auth = getAuth(app);
@@ -216,27 +95,16 @@
 
 <style lang="postcss">
   .grid {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    top: -25vh;
-    left: -25vw;
-    gap: 0;
-    z-index: 1;
+    @apply fixed w-screen h-screen top-[-25vh] left-[-25vw] gap-0;
   }
 
   .tile {
     box-sizing: border-box;
-    background-color: rgb(245, 124, 32);
+    background-color: white;
     animation: wave-effect 1s ease-out forwards;
     animation-play-state: running;
     transform-origin: center;
-    border: 2px solid black;
-  }
-
-  .main-container {
-    position: relative;
-    z-index: 5; /* keep this above the grid */
+    border: black 2px solid;
   }
 
   .section-container {
@@ -287,7 +155,7 @@
   </div>
 
   <!-- Main Content Section -->
-  <div class="main-container fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+  <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
     <div class="text-center text-6xl">
       ColorCoding
       <div class="text-xl font-light">
@@ -318,8 +186,14 @@
 
   <!-- Sign Up Section -->
   {#if showSignUpSection}
-    <div class="section-container">
-      <h2 class="text-2xl font-bold text-center mb-4">Sign Up</h2>
+    <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+      <Button
+          class="absolute top-2 right-2"
+          onclick={() => (showSignUpSection = false)}
+        >
+          <X size={24} />
+        </Button>
+      <h2 class="text-2xl font-bold text-center mb-4 my-10">Sign Up</h2>
       <form onsubmit={handleRegister} class="flex flex-col gap-4">
         <!-- Email Field -->
         <div class="flex items-center border rounded px-2">
@@ -382,9 +256,15 @@
 
   <!-- Sign In Section -->
   {#if showSignInSection}
-    <div class="section-container">
-      <h2 class="text-2xl font-bold text-center mb-4">Sign In</h2>
-      <form onsubmit={signInUser} class="flex flex-col gap-4">
+    <div class="fixed bg-white p-4 rounded-xl left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+        <Button
+          class="absolute top-2 right-2"
+          onclick={() => (showSignInSection = false)}
+        >
+          <X size={24} />
+        </Button>
+      <h2 class="text-2xl font-bold text-center my-10">Sign In</h2>
+      <form onsubmit={handleSignIn} class="flex flex-col gap-4">
         <!-- Email Field -->
         <div class="flex items-center border rounded px-2">
           <Mail class="mr-2" size={20} />
@@ -408,12 +288,12 @@
           />
         </div>
         <!-- Buttons -->
-        <div class="flex gap-2 mt-4 justify-end">
+        <div class="flex mt-4 mx-5 justify-between">
           <Button type="submit" class="bg-green-500">Sign In</Button>
           <Button
             type="button"
             class="bg-gray-500"
-            on:click={() => (showSignInSection = false)}
+            onclick={() => (showSignInSection = false)}
           >
             Cancel
           </Button>

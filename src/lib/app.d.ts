@@ -12,7 +12,7 @@ declare global {
         DSA: boolean;
         userIDs: string[];
         problemIDs: string[];
-        createdAt: serverTimestamp;
+        createdAt: ReturnType<typeof serverTimestamp>;
         status: LobbyStatus;
         maxPlayers: number;
         players: LobbyPlayer[];
