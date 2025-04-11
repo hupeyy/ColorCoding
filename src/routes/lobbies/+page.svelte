@@ -31,7 +31,7 @@
   }
 
   onMount(() => {
-    const unsubscribe = getGuestLobbies();//change to getLobbies() later on
+    const unsubscribe = getGuestLobbies(); //change to getLobbies() later on
     return unsubscribe;
   });
 
@@ -61,7 +61,6 @@
           <Table.Cell>{lobby.host.displayName}</Table.Cell>
           <Table.Cell> {lobby.players.length} / {lobby.maxPlayers}</Table.Cell>
           <Table.Cell>{lobby.DSA}</Table.Cell>
-
           <Table.Cell>
             <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
           </Table.Cell>

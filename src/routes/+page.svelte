@@ -3,14 +3,17 @@
   import { spring } from 'svelte/motion';
   import Button from "$lib/components/ui/button/button.svelte";
   import { Mail, User, Lock, X } from 'lucide-svelte';
-  import { createPlayer } from '$lib/firebase'
+  import { players, createPlayer, getPlayers } from '$lib/firebase'
 
   let gridSize = 64;
   let tileSize = 64;
   let mounted = $state(false);
 
+  // Players
+  let existingPlayers = $derived<Player[] | null>($players);
+
   // Toggles for which section is visible
-  let showSignUpSection = $state(false);
+  let showSignUpSection = $state(true);
   let showSignInSection = $state(false);
 
   // Form fields
@@ -28,12 +31,15 @@
 
   onMount(() => {
     mounted = true;
-    // Precompute a random color for each tile once.
+    const unsubscribePlayers = getPlayers(); 
     tileColors = Array(totalTiles)
       .fill(null)
       .map(() => palette[Math.floor(Math.random() * palette.length)]);
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      unsubscribePlayers; 
+    }
   });
 
   function handleMouseMove(event: MouseEvent) {
@@ -41,7 +47,7 @@
   }
 
   async function handleRegister() {
-    let user: Omit<Player, 'id'> = {
+    let player: Player = {
       email: email,
       username: username,
       password: password,
@@ -59,7 +65,8 @@
     }
 
     try {
-      createPlayer(user);
+      await createPlayer(player);
+
       // Reset fields & hide sign-up section
       email = '';
       username = '';
@@ -77,19 +84,7 @@
 
   // SIGN IN USER
   async function handleSignIn() {
-    // event.preventDefault();
-    // try {
-    //   const auth = getAuth(app);
-    //   await signInWithEmailAndPassword(auth, email, password);
-    //   alert("Sign in successful!");
-    //   // Reset fields & hide sign-in section
-    //   email = '';
-    //   password = '';
-    //   showSignInSection = false;
-    // } catch (error: any) {
-    //   console.error("Sign in error:", error);
-    //   alert(error.message);
-    // }
+    return
   }
 </script>
 
@@ -105,18 +100,6 @@
     animation-play-state: running;
     transform-origin: center;
     border: black 2px solid;
-  }
-
-  .section-container {
-    position: relative;
-    z-index: 5;
-    margin: 2rem auto;
-    width: 80%;
-    max-width: 500px;
-    background-color: white;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
   form div {

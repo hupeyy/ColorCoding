@@ -31,7 +31,6 @@ declare global {
     }
 
     type Player = {
-        id: string;
         username: string;
         email: string;
         password: string;

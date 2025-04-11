@@ -10,6 +10,7 @@ import type { User } from 'firebase/auth';
 import { readable, writable, type Subscriber } from 'svelte/store';
 import { getFirestore, onSnapshot } from 'firebase/firestore';
 import {
+    setDoc,
     addDoc,
     collection,
     deleteDoc,
@@ -166,7 +167,6 @@ export async function getPlayers() {
             const playerData = snapshot.empty
                 ? []
                 : snapshot.docs.map((doc) => ({
-                    // id: doc.id,
                     ...doc.data(),
                   })) as Player[];
             players.set(playerData);
@@ -175,8 +175,18 @@ export async function getPlayers() {
     return () => unsubscribe();
 }
 
-export async function createPlayer(user: Omit<Player, 'id'>) {
-    const userRef = await addDoc(collection(db, 'players'), user);
-    await updateDoc(userRef, {id: userRef.id});
-    return userRef.id;
+export async function createPlayer(player: Player) {
+    // Check if player already exists in the database
+    let playerRef = doc(db, 'players', player.email);
+    const playerSnapshot = await getDoc(playerRef);
+
+    if (playerSnapshot.exists()) {
+        throw new Error("Player already exists");
+    } else {
+        await setDoc(playerRef, {
+            ...player,
+            id: player.email
+        });
+        return playerRef.id;
+    }
 }
