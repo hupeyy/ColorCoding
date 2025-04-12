@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { spring } from 'svelte/motion';
   import Button from "$lib/components/ui/button/button.svelte";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import * as RadioGroup from "$lib/components/ui/radio-group/index.js";
   import { Mail, User, Lock, X } from 'lucide-svelte';
   import { currentPlayer, players, createPlayer, signIn, getPlayers, getCurrentPlayer } from '$lib/firebase'
 
@@ -20,7 +22,8 @@
   let email = $state("");
   let username = $state("");
   let password = $state("");
-  let dsa = $state(false);
+  let dsa = $state("false");
+  let dsaBoolean = $derived(dsa === "true");
   let confirmPassword = $state("");
 
   // Animated background variables
@@ -53,7 +56,7 @@
       email: email,
       username: username,
       password: password,
-      DSA: dsa
+      DSA: dsaBoolean
     };
 
     if (password !== confirmPassword) {
@@ -74,7 +77,7 @@
       username = '';
       password = '';
       confirmPassword = '';
-      dsa = false;
+      dsa = "false";
       showSignUpSection = false;
       showSignInSection = false;
       alert("User created successfully!");
@@ -220,6 +223,19 @@
             class="flex-grow py-2 outline-none"
           />
         </div>
+        <!-- DSA Checkbox -->
+        <label class="flex items-center gap-2">
+          <RadioGroup.Root bind:value={dsa} class="mr-2">
+            <div class="flex items-center space-x-2">
+              <RadioGroup.Item value={"true"} id="dsa-true" />
+              <Label for="option-one">Taken DSA</Label>
+            </div>
+            <div class="flex items-center space-x-2">
+              <RadioGroup.Item value={"false"} id="dsa-false" />
+              <Label for="option-two">Have Not Taken DSA</Label>
+            </div>
+          </RadioGroup.Root>
+        </label>
         <!-- Password Field -->
         <div class="flex items-center border rounded px-2">
           <Lock class="mr-2" size={20} />

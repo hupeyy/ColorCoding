@@ -4,7 +4,9 @@ import {
     GoogleAuthProvider,
     onIdTokenChanged,
     signInWithEmailAndPassword,
-    signOut
+    createUserWithEmailAndPassword,
+    signOut,
+    updateProfile
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { readable, writable, type Subscriber } from 'svelte/store';
@@ -178,18 +180,31 @@ export async function getPlayers() {
 }
 
 export async function createPlayer(player: Player) {
-    // Check if player already exists in the database
-    let playerRef = doc(db, 'players', player.email);
-    const playerSnapshot = await getDoc(playerRef);
+    try {
+        // Check if player already exists in the database
+        let playerRef = doc(db, 'players', player.email);
+        const playerSnapshot = await getDoc(playerRef);
 
-    if (playerSnapshot.exists()) {
-        throw new Error("Player already exists");
-    } else {
+        if (playerSnapshot.exists()) {
+            throw new Error("Player already exists");
+        } 
+
+        const userCredential = await createUserWithEmailAndPassword(auth, player.email, player.password);
+        const user = userCredential.user;
+
+        if (player.username) {
+            await updateProfile(user, { 
+                displayName: player.username 
+            });
+        }
+
         await setDoc(playerRef, {
             ...player,
-            id: player.email
-        });
-        return playerRef.id;
+            uid: user.uid
+        })
+    } catch (error: any) {
+        console.error("Error creating player:", error);
+        throw new Error("Error creating player: " + error.message);
     }
 }
 
