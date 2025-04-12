@@ -3,18 +3,18 @@
   import { spring } from 'svelte/motion';
   import Button from "$lib/components/ui/button/button.svelte";
   import { Mail, User, Lock, X } from 'lucide-svelte';
-  import { players, createPlayer, getPlayers } from '$lib/firebase'
+  import { currentPlayer, players, createPlayer, signIn, getPlayers, getCurrentPlayer } from '$lib/firebase'
 
   let gridSize = 64;
   let tileSize = 64;
   let mounted = $state(false);
 
-  // Players
-  let existingPlayers = $derived<Player[] | null>($players);
-
   // Toggles for which section is visible
-  let showSignUpSection = $state(true);
+  let showSignUpSection = $state(false);
   let showSignInSection = $state(false);
+
+  // Current player
+  let currPlayer = $derived<Player | null>($currentPlayer);
 
   // Form fields
   let email = $state("");
@@ -32,6 +32,7 @@
   onMount(() => {
     mounted = true;
     const unsubscribePlayers = getPlayers(); 
+    const unsubscribeCurrentPlayer = getCurrentPlayer();
     tileColors = Array(totalTiles)
       .fill(null)
       .map(() => palette[Math.floor(Math.random() * palette.length)]);
@@ -39,6 +40,7 @@
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       unsubscribePlayers; 
+      unsubscribeCurrentPlayer;
     }
   });
 
@@ -84,7 +86,25 @@
 
   // SIGN IN USER
   async function handleSignIn() {
-    return
+
+    if (email === "" || password === "") {
+      alert("Please fill in all fields!");
+      return;
+    }
+
+    try {
+      const player = await signIn(email, password);
+      
+      // Reset fields & hide sign-in section
+      email = '';
+      password = '';
+      showSignInSection = false;
+      alert("User signed in successfully!");
+      window.location.href = `/lobbies/`;
+    } catch(error: any) {
+      console.error("Sign-in error:", error);
+      alert(error.message);
+    }
   }
 </script>
 

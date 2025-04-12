@@ -6,6 +6,17 @@
   import { toggleMode } from "mode-watcher";
   import { Button } from "$lib/components/ui/button/index.js";
 
+  import { currentPlayer, getCurrentPlayer } from "$lib/firebase";
+  import { onMount } from "svelte";
+
+  let currPlayer = $derived<Player | null>($currentPlayer); // Current player derived store
+
+  onMount(() => {
+    const unsubscribe = getCurrentPlayer(); // Subscribe to current player changes
+
+    return () => unsubscribe();
+  });
+
 </script>
  
 <div class="flex flex-row justify-end px-6 py-4 gap-4">
@@ -18,7 +29,7 @@
     />
   </Button>
 
-  <Button variant="outline" size="icon">
+  <Button variant="outline" size="icon" onclick={() => (console.log("Current Player: ", currPlayer))}>
     <User class="h-[1.2rem] w-[1.2rem]" />
   </Button>
 </div>

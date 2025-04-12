@@ -3,7 +3,7 @@ import {
     getAuth,
     GoogleAuthProvider,
     onIdTokenChanged,
-    signInWithPopup,
+    signInWithEmailAndPassword,
     signOut
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
@@ -23,6 +23,7 @@ import {
     where,
     getDocs
 } from 'firebase/firestore';
+import { setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { PUBLIC_FIREBASE_CONFIG } from '$env/static/public';
 
 // only need right now to create guestUser
@@ -41,6 +42,7 @@ const app = initializeApp(config);
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+setPersistence(auth, browserLocalPersistence)
 
 const db = getFirestore(app);
 
@@ -188,5 +190,44 @@ export async function createPlayer(player: Player) {
             id: player.email
         });
         return playerRef.id;
+    }
+}
+
+export const currentPlayer = writable<Player | null>(null);
+export function getCurrentPlayer() {
+    const unsubscribe = onIdTokenChanged(auth, async (user: User | null) => {
+        if (user) {
+            const playerRef = doc(db, 'players', user.email!);
+            const playerSnapshot = await getDoc(playerRef);
+
+            if (playerSnapshot.exists()) {
+                currentPlayer.set(playerSnapshot.data() as Player);
+            } else {
+                currentPlayer.set(null);
+            }
+        } else {
+            currentPlayer.set(null);
+        }
+    });
+
+    return () => unsubscribe();
+}
+
+export async function signIn(email: string, password: string) {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const playerRef = doc(db, 'players', user.email!);
+        const playerSnapshot = await getDoc(playerRef);
+
+        if (playerSnapshot.exists()) {
+            const playerData = playerSnapshot.data() as Player;
+            currentPlayer.set(playerData);
+        } else {
+            throw new Error("Player not found");
+        }
+    } catch (error: any) {
+        throw new Error("Sign in failed ", error);
     }
 }
