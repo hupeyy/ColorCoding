@@ -48,8 +48,7 @@ setPersistence(auth, browserLocalPersistence)
 
 const db = getFirestore(app);
 
-export const lobbies = writable<Lobby[] | null>(null);
-
+export const lobbies = writable<Lobby[]>([]);
 export function getLobbies() {
     const unsubscribe = onSnapshot(
         query(
@@ -92,45 +91,29 @@ export function getGuestLobbies() {
     return () => unsubscribe();
 }
 
-export async function createLobby(host: LobbyPlayer, name: string, maxPlayers: number, DSA: boolean, problemIDs: string[])  {
-    // Lobby document to be added to collection 'guestLobbies' on Firebase
-    const newLobby: Omit<Lobby, 'id'> = {
-        DSA,
-        userIDs: [host.id],
-        problemIDs,
-        createdAt: serverTimestamp(),
-        status: 'waiting',
-        maxPlayers,
-        players: [host],
-        host,
-        name
-    };
-    // Add this guestLobby doc to collection 'guestLobbies' in Firebase
-    const lobbyref = await addDoc(collection(db, 'guestLobbies'), newLobby);
-    // Add the lobby's id to firebase
+export async function createLobby(lobby: Omit<Lobby, 'id'>) {
+    const lobbyref = await addDoc(collection(db, 'lobbies'), lobby);
     await updateDoc(lobbyref, {id: lobbyref.id});
     return lobbyref.id;
 }
 
-export async function joinLobby(lobbyId: string, player: LobbyPlayer) {
-    const lobbyref = doc(db, 'guestLobbies', lobbyId);
+export async function joinLobby(lobbyId: string, player: Player) {
+    const lobbyref = doc(db, 'lobbies', lobbyId);
     const lobbySnapshot = await getDoc(lobbyref);
 
     if(!lobbySnapshot.exists()) throw new Error("Lobby not found");
 
     const lobby = lobbySnapshot.data() as Lobby;
 
-    const alreadyJoined = lobby.players.some(p => p.id === player.id);
-    if(alreadyJoined) {throw new Error("Already joined lobby")}
-    
-    if(lobby.players.length >= lobby.maxPlayers) {throw new Error("Lobby is full");}
+    const alreadyJoined = lobby.players.some(p => p.email === player.email);
+
+    if(alreadyJoined) throw new Error("Already joined lobby")
+    if(lobby.players.length >= lobby.maxPlayers) throw new Error("Lobby is full");
 
     const updatePlayers = [...lobby.players, player];
-    const updateuserIDs = [...lobby.userIDs, player.id];
 
     await updateDoc(lobbyref, {
         players: updatePlayers,
-        userIDs: updateuserIDs
     });
 }
 
