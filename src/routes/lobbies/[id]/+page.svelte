@@ -1,16 +1,28 @@
 <script>
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { onMount } from 'svelte';
   import { 
     lobbies,
     getLobbies,
     problems,
-    getProblems
+    getProblems,
+    guestLobbies,
+    getGuestLobbies,
   } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
 
-
-  onMount(() => {
+  const problemHeaders = ['Title', 'Difficulty'];
+  let lobbyID = $derived(page.params.id);
+  
+  // Reactive declarations with runes
+  let selectedLobby = $derived($guestLobbies?.find(lobby => lobby.id === lobbyID) || null);
+  let lobbyProblems = $derived(
+    $problems && selectedLobby 
+      ? $problems.filter(problem => selectedLobby.problemIDs.includes(problem.id))
+      : []
+  );
+  
+  onMount(async () => {
     const unsubscribeLobbies = getGuestLobbies();
     const unsubscribeProblems = getProblems();
 
@@ -19,26 +31,13 @@
       unsubscribeProblems();
     }
   });
-
-  let lobbyProblems = [];
-  const problemHeaders = ['Title', 'Difficulty'];
-
-  $: lobbyID = $page.params.id;
- 
-  $: {
-    if ($lobbies && $problems) {
-      const lobby = $lobbies.find(lobby => lobby.id === lobbyID);
-      if (lobby) {
-        lobbyProblems = lobby.problemIDs.map(problemID => {
-          return $problems.find(problem => problem.id === problemID);
-        }).filter(problem => problem !== undefined);
-      }
-    }
-  }
 </script>
 
-{#if $lobbies === null}
-  <p>Loading...</p>
+
+{#if !selectedLobby}
+  <p>Loading lobby...</p>
+{:else if selectedLobby.problemIDs.length === 0}
+  <p>No problems available in this lobby.</p>
 {:else}
   <Table.Root>
     <Table.Caption>Problem List</Table.Caption>
