@@ -8,6 +8,7 @@
     getProblems,
     guestLobbies,
     getGuestLobbies,
+
   } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
 
@@ -31,6 +32,22 @@
       unsubscribeProblems();
     }
   });
+
+  let lobbyProblems = [];
+  const problemHeaders = ['Title', 'Difficulty'];
+
+  $: lobbyID = $page.params.id;
+ // 
+  $: {
+    if ($lobbies && $problems) {
+      const lobby = $lobbies.find(lobby => lobby.id === lobbyID);
+      if (lobby) {
+        lobbyProblems = lobby.problemIDs.map(problemID => {
+          return $problems.find(problem => problem.id === problemID);
+        }).filter(problem => problem !== undefined);
+      }
+    }
+  }
 </script>
 
 
