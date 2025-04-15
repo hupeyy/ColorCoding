@@ -1,14 +1,22 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { lobbies, getLobbies, createGuest, createLobby, guestUser, joinLobby, getGuestLobbies, problems } from '$lib/firebase';
-  import * as Table from '$lib/components/ui/table';
+  import { 
+    createGuest, 
+    guestUser,
+    joinLobby, 
+    getGuestLobbies,
+    guestLobbies,
+  } from '$lib/firebase';
   import { Button } from '$lib/components/ui/button';
+  import { onMount } from 'svelte';
+  import * as Table from "$lib/components/ui/table/index.js";
 
-  let displayName = '';
-  let lobbyName = '';
-  let maxPlayers = 100;
-  let DSA = false;
-  let currName = 'guest';
+  let displayName = $state("");
+  let lobbyName = $state("");
+  let maxPlayers = $state(100);
+  let DSA = $state(false);
+  let currName = $state('guest');
+
+  let lobbies = $derived<Lobby[] | null>($guestLobbies);
 
   function handleGuestCreation() {
     if(!displayName) return; // Must Enter a name
@@ -16,11 +24,6 @@
     currName = displayName;
   }
     
-  async function handleLobbyCreation() {
-    if(!$guestUser) return; // Must press Set Name button before trying to create lobby
-    await createLobby($guestUser, lobbyName, maxPlayers, DSA, ['XPG3fiuQvIuo8NYBKs82']);
-  }
-
   async function handleLobbyJoin(lobbyId: string) {
     if(!$guestUser) return; // Must press Set name button before trying to create lobby
     await joinLobby(lobbyId, $guestUser);
@@ -33,20 +36,15 @@
   });
 
   const headers = ['Lobby Name', 'Status', 'Host', '# of Players', 'DSA?']
-  $: {
-    console.log($lobbies);
-  }
 </script>
 
-{#if $lobbies === null}
+{#if lobbies === null}
   <p>Loading...</p>
-{:else if $lobbies.length === 0}
+{:else if lobbies.length === 0}
   <p>No lobbies found.</p>
 {:else}
   <Table.Root>
-
     <Table.Caption>Lobbies List</Table.Caption>
-
     <Table.Header class="text-2xl">
       <Table.Row>
         {#each headers as header}
@@ -56,7 +54,7 @@
     </Table.Header>
 
     <Table.Body>
-      {#each $lobbies as lobby}
+      {#each lobbies as lobby}
         <Table.Row>
           <Table.Cell>{lobby.name}</Table.Cell>
           <Table.Cell>{lobby.status}</Table.Cell>
@@ -65,18 +63,12 @@
           <Table.Cell>{lobby.DSA}</Table.Cell>
 
           <Table.Cell>
-            <Button on:click={() => handleLobbyJoin(lobby.id)}>Join</Button>
+            <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
           </Table.Cell>
-
-          <!-- <Table.Cell 
-          on:click={() => {window.location.href = `/lobbies/${lobby.id}`;}}>
-          </Table.Cell> -->
         </Table.Row>
       {/each}
     </Table.Body>
-
   </Table.Root>
-
 <!-- sample guest lobby creation -->
   <div class="flex items-center justify-center p-6">
 
@@ -90,7 +82,7 @@
     <input type="checkbox" bind:checked={DSA} />
     DSA Enabled
   </label>
-  <Button on:click={handleLobbyCreation} class="px-4">Create Lobby</Button>
+  <Button onclick={handleGuestCreation} class="px-4">Create Lobby</Button>
 
   </div>
   <h2 class="flex items-center justify-center p-6">Hi, {currName}!</h2>
