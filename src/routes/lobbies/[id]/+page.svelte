@@ -5,7 +5,8 @@
     lobbies,
     getLobbies,
     problems,
-    getProblems
+    getProblems,
+    getGuestLobbies
   } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
 
@@ -24,7 +25,7 @@
   const problemHeaders = ['Title', 'Difficulty'];
 
   $: lobbyID = $page.params.id;
- 
+ // 
   $: {
     if ($lobbies && $problems) {
       const lobby = $lobbies.find(lobby => lobby.id === lobbyID);
