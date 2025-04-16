@@ -26,7 +26,7 @@
       return;
     }
     await joinLobby(lobbyId, currPlayer);
-    window.location.href = `/Lobbies/${lobbyId}`
+    window.location.href = `/lobbies/${lobbyId}`;
   }
 
   async function handleCreateLobby() {
@@ -57,7 +57,7 @@
     } 
   });
 
-  const headers = ['Lobby Name', 'Host', '# of Players', 'Status', 'DSA?'];
+  const headers = ['Lobby Name', 'Host', '# of Players', 'Status', 'DSA?', 'Join'];
 </script>
 
 {#if currLobbies === null}
@@ -94,10 +94,11 @@
         <Table.Row>
           <Table.Cell>{lobby.name}</Table.Cell>
           <Table.Cell>{lobby.host.username}</Table.Cell>
+          <Table.Cell>{lobby.players.length} / {lobby.maxPlayers}</Table.Cell>
           <Table.Cell>{lobby.DSA}</Table.Cell>
           <Table.Cell>{lobby.status}</Table.Cell>
           <Table.Cell>
-            <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
+            <Button onclick={handleLobbyJoin(lobby.id)}>Join</Button>
           </Table.Cell>
         </Table.Row>
       {/each}

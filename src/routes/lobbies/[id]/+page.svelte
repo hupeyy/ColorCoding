@@ -6,8 +6,6 @@
     getLobbies,
     problems,
     getProblems,
-    guestLobbies,
-    getGuestLobbies,
   } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
 
@@ -15,7 +13,7 @@
   let lobbyID = $derived(page.params.id);
   
   // Reactive declarations with runes
-  let selectedLobby = $derived($guestLobbies?.find(lobby => lobby.id === lobbyID) || null);
+  let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyID) || null);
   let lobbyProblems = $derived(
     $problems && selectedLobby 
       ? $problems.filter(problem => selectedLobby.problemIDs.includes(problem.id))
@@ -23,7 +21,7 @@
   );
   
   onMount(async () => {
-    const unsubscribeLobbies = getGuestLobbies();
+    const unsubscribeLobbies = getLobbies();
     const unsubscribeProblems = getProblems();
 
     return () => {
@@ -53,7 +51,7 @@
         <Table.Row>
           {#each problemHeaders as header}
             <Table.Cell
-              on:click={() => {
+              onclick={() => {
                 window.location.href = `/lobbies/${lobbyID}/${problem.id}`;
               }}
             >

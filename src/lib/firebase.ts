@@ -92,7 +92,23 @@ export function getGuestLobbies() {
 }
 
 export async function createLobby(lobby: Omit<Lobby, 'id'>) {
-    const lobbyref = await addDoc(collection(db, 'lobbies'), lobby);
+    let lobbyCopy = lobby;
+    // Assign lobby random problems
+    const problemsRef = collection(db, 'problems');
+    const problemsSnapshot = await getDocs(problemsRef);
+    const problems = problemsSnapshot.docs.map(doc => doc.data()) as Problem[];
+    const easyProblems = problems.filter(problem => problem.difficulty === 'easy');
+    const mediumProblems = problems.filter(problem => problem.difficulty === 'medium');
+    const hardProblems = problems.filter(problem => problem.difficulty === 'hard');
+
+    const randomEasyProblems = easyProblems.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const randomMediumProblems = mediumProblems.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const randomHardProblems = hardProblems.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+    const randomProblems = [...randomEasyProblems, ...randomMediumProblems, ...randomHardProblems].sort(() => 0.5 - Math.random()).slice(0, 4);
+    lobbyCopy.problemIDs = randomProblems.map(problem => problem.id);
+
+    const lobbyref = await addDoc(collection(db, 'lobbies'), lobbyCopy);
     await updateDoc(lobbyref, {id: lobbyref.id});
     return lobbyref.id;
 }
@@ -106,8 +122,8 @@ export async function joinLobby(lobbyId: string, player: Player) {
     const lobby = lobbySnapshot.data() as Lobby;
 
     const alreadyJoined = lobby.players.some(p => p.email === player.email);
+    if (alreadyJoined) return;
 
-    if(alreadyJoined) throw new Error("Already joined lobby")
     if(lobby.players.length >= lobby.maxPlayers) throw new Error("Lobby is full");
 
     const updatePlayers = [...lobby.players, player];
