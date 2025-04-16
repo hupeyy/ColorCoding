@@ -4,7 +4,7 @@
   import * as Resizable from "$lib/components/ui/resizable";
   import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { page } from '$app/state';
+  import { page } from '$app/stores';
   import { problems, getProblems } from '$lib/firebase';
   import { onMount } from 'svelte';
     
