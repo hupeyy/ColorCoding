@@ -69,28 +69,6 @@ export function getLobbies() {
     return () => unsubscribe();
 }
 
-export const guestLobbies = writable<Lobby[] | null>(null);
-export function getGuestLobbies() {
-    const unsubscribe = onSnapshot(
-        // retrieve guestLobbies by time created descending
-        query(
-            collection(db, 'guestLobbies'),
-            orderBy('createdAt', 'desc')
-        ),
-        (snapshot) => {
-            const lobbyData = snapshot.empty
-                ? []
-                : snapshot.docs.map((doc) => ({
-                    // id: doc.id,
-                    ...doc.data(),
-                  })) as Lobby[];
-            guestLobbies.set(lobbyData);
-        }
-    );
-
-    return () => unsubscribe();
-}
-
 export async function createLobby(lobby: Omit<Lobby, 'id'>) {
     let lobbyCopy = lobby;
     // Assign lobby random problems
@@ -122,7 +100,7 @@ export async function joinLobby(lobbyId: string, player: Player) {
     const lobby = lobbySnapshot.data() as Lobby;
 
     const alreadyJoined = lobby.players.some(p => p.email === player.email);
-    if (alreadyJoined) return;
+    if (alreadyJoined) return; 
 
     if(lobby.players.length >= lobby.maxPlayers) throw new Error("Lobby is full");
 

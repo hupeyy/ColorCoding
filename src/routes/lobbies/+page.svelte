@@ -95,10 +95,10 @@
           <Table.Cell>{lobby.name}</Table.Cell>
           <Table.Cell>{lobby.host.username}</Table.Cell>
           <Table.Cell>{lobby.players.length} / {lobby.maxPlayers}</Table.Cell>
-          <Table.Cell>{lobby.DSA}</Table.Cell>
           <Table.Cell>{lobby.status}</Table.Cell>
+          <Table.Cell>{lobby.DSA}</Table.Cell>
           <Table.Cell>
-            <Button onclick={handleLobbyJoin(lobby.id)}>Join</Button>
+            <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
           </Table.Cell>
         </Table.Row>
       {/each}
