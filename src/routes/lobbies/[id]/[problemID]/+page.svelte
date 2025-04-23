@@ -1,12 +1,12 @@
 <script lang="ts">
   import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-  import { ScrollArea } from '$lib/components/ui/scroll-area';
+  import { ScrollArea } from "$lib/components/ui/scroll-area/index.js"; 
   import * as Resizable from "$lib/components/ui/resizable";
   import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { page } from '$app/state';
   import { problems, getProblems } from '$lib/firebase';
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
 
   const languages = [
       { value: '71', label: 'Python (3.8.1)', lang: 'python'},
@@ -189,7 +189,7 @@
           <Resizable.Pane defaultSize={100}>
             <ScrollArea>
               <div class="flex flex-row justify-between p-4">
-                <Button on:click={submitCode}>Submit Solution</Button>
+                <Button onclick={submitCode}>Submit Solution</Button>
                 <Button>Save Code</Button>
               </div>
               {#if executionResult}

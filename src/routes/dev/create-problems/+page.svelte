@@ -30,7 +30,7 @@
       await createProblem(problem);
       successMessage = 'Problem created successfully!';
       errorMessage = '';
-    } catch (error) {
+    } catch (error: any) {
       errorMessage = 'Error creating problem: ' + error.message;
       successMessage = '';
     }

@@ -10,13 +10,12 @@ declare global {
 
     type Lobby = {
         DSA: boolean;
-        userIDs: string[];
         problemIDs: string[];
-        createdAt: serverTimestamp;
+        createdAt: ReturnType<typeof serverTimestamp>;
         status: LobbyStatus;
         maxPlayers: number;
-        players: LobbyPlayer[];
-        host: LobbyPlayer;
+        players: Player[];
+        host: Player;
         id: string;
         name: string;
     }
@@ -28,6 +27,13 @@ declare global {
         description: string;
         inputs: string[];
         outputs: string[];
+    }
+
+    type Player = {
+        username: string;
+        email: string;
+        password: string;
+        DSA: boolean;
     }
 }
 
