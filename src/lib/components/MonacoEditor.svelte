@@ -2,11 +2,13 @@
 	// Source Code:
   // 'With love, Sony AK <sony@sony-ak.com> GitHub https://github.com/sonyarianto'
 	import { onMount } from 'svelte';
-
-	let {
-    code = $bindable(),
-    language = $bindable()
-  } = $props()
+	// let {
+	// 	code = $bindable(),
+	// 	language = $bindable()
+  	// } = $props()
+	export let code = "";
+	export let lang = "python"; // default to 'python'
+	let editorInstance;
 	
 	onMount(() => {
 		let scriptElement = document.createElement("script");
@@ -21,9 +23,9 @@
 	    });
 
 			require(['vs/editor/editor.main'], () => {
-        let editorInstance = monaco.editor.create(document.getElementById('editor'), {
+        editorInstance = monaco.editor.create(document.getElementById('editor'), {
           value: code,
-          language: language,
+          language: lang,
           automaticLayout: true,
           padding: { top: 5, right: 5, bottom: 5, left: 5 },
           overviewRulerLanes: 0,
@@ -34,7 +36,6 @@
 				// Add event listener for value changes
 	      editorInstance.onDidChangeModelContent(() => {
 	        const updatedSourceCode = editorInstance.getValue();
-	        console.log({updatedSourceCode});
 	      });
 				// Monaco Editor also have several others interesting events to explore such as
 				// onDidChangeCursorPosition, onDidChangeCursorSelection, onDidFocusEditor, onDidBlurEditor,
@@ -43,6 +44,18 @@
       });
 		});
 	});
+	
+	// Reactive statement to update the editor's language when `lang` changes
+	$: if (editorInstance && lang) {
+        const model = editorInstance.getModel();
+        if (model) {
+            monaco.editor.setModelLanguage(model, lang);
+        }
+    }
+
+	export function getValue() {
+        return editorInstance?.getValue();
+    }
 
 
 </script>

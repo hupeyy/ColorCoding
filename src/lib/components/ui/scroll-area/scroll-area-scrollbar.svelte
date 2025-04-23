@@ -1,12 +1,18 @@
 <script>
 	import { ScrollArea as ScrollAreaPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
-	let className = undefined;
-	export let orientation = "vertical";
-	export { className as class };
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		orientation = "vertical",
+		children,
+		...restProps
+	} = $props();
 </script>
 
 <ScrollAreaPrimitive.Scrollbar
+	bind:ref
 	{orientation}
 	class={cn(
 		"flex touch-none select-none transition-colors",
@@ -14,8 +20,9 @@
 		orientation === "horizontal" && "h-2.5 w-full border-t border-t-transparent p-px",
 		className
 	)}
+	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 	<ScrollAreaPrimitive.Thumb
 		class={cn("bg-border relative rounded-full", orientation === "vertical" && "flex-1")}
 	/>
