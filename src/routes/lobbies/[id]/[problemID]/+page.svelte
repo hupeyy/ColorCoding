@@ -21,6 +21,7 @@
   let editorComponent: MonacoEditor;
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
+  let problemLoaded = false;
   let chosenLanguage = $state(languages[0].value); // default to the first language
   let code = $state("print('Hello World!')");
   let backendLanguage = $state(languages[0].lang); // default to the first language
@@ -29,14 +30,8 @@
   let problemID = $derived(page.params.problemID);
   let problem = $state<Problem | null>(null);
   let testCases = $state<{input: string, output: string, result: string}[]>([]);
-  // let testCases = $state([
-  //     {input: 'Hello World!', output: 'Hello World!', result: ""},
-  //     {input: 'Testing2', output: 'Testing2', result: ""},
-  //     {input: 'Testing3', output: 'Testing3',  result: ""},
-  // ])
 
   async function submitCode() {
-      console.log(testCases.length);
       for (let i = 0; i < testCases.length; i++) {
         try {
           // Update test case status to indicate processing
@@ -91,7 +86,7 @@
                 clearInterval(intervalId);
 
                 // Update the result for the current test case
-                testCases[i].result = response.status.description === 'Accepted' ? 'Accepted' : 'Failed';
+                testCases[i].result = response.status.description === 'Accepted' ? 'Passed' : 'Failed';
 
                 // Reassign the testCases array to trigger reactivity
                 testCases = [...testCases];
@@ -120,15 +115,17 @@
 
   //Subscribe to problems store and find the specific problem
   $effect(() => {
-    if ($problems) {
+    if ($problems && problemLoaded== false) {
+      problemLoaded = true;
       problem = $problems.find(p => p.id === problemID) || null;
-      
+      console.log("Problem ID:", problemID);      
       if (problem) {
         testCases = problem.inputs.map((input, index) => ({
           input: input,
           output: problem.outputs[index],
           result: "",
         }));
+        console.log("Test Cases:", testCases);
       }
     }
   });
@@ -139,8 +136,6 @@
     getProblems().then(unsub => {
       unsubscribeProblems = unsub;
     });
-    
-    console.log("Problem:", problem);
 
     return () => {
       if (unsubscribeProblems) {
@@ -161,19 +156,22 @@
       {/each}
     </select>
   </div>
-  <div class="h-[85vh]">
+  <div class="h-[85vh] ">
     <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
-      <Resizable.Pane defaultSize={40}>
+      <Resizable.Pane defaultSize={40} style="overflow: auto;">
         <h1 class="text-3xl">{problem["title"]}</h1>
         <h2 class="pb-8">Difficulty: {problem["difficulty"]}</h2>
         <p class="pb-8">{problem["description"]}</p>
         <h2 class="text-2xl">Test Cases</h2>
-        <ul>
-          {#each testCases as testCase}
-            <li>Input: {testCase["input"]}</li>
-            <li>Expected Output: {testCase["output"]}</li>
-          {/each}
-        </ul>
+          <ul>
+            {#each testCases as testCase}
+              <li><strong>Input:</strong> {testCase["input"]}</li>
+              <li><strong>Expected Output:</strong> {testCase["output"]}</li>
+              <li><strong>Result:</strong><span class={testCase["result"] === "Passed" ? "text-green-500" : testCase["result"] === "Processing" ? 
+              "text-yellow-500" : "text-red-500"}>{" "}{testCase["result"]}</span></li>
+              <br />
+            {/each}
+          </ul>
       </Resizable.Pane>
       <ResizableHandle />
       <Resizable.Pane defaultSize={60}>
