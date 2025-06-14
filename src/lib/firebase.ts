@@ -91,6 +91,11 @@ export async function createLobby(lobby: Omit<Lobby, 'id'>) {
     return lobbyref.id;
 }
 
+export async function deleteLobby(lobbyId: string) {
+    const lobbyRef = doc(db, 'lobbies', lobbyId);
+    await deleteDoc(lobbyRef);
+}
+
 export async function joinLobby(lobbyId: string, player: Player) {
     const lobbyref = doc(db, 'lobbies', lobbyId);
     const lobbySnapshot = await getDoc(lobbyref);
@@ -110,7 +115,25 @@ export async function joinLobby(lobbyId: string, player: Player) {
         players: updatePlayers,
     });
 }
+export async function leaveLobby(lobbyId: string, player: Player) {
+    const lobbyref = doc(db, 'lobbies', lobbyId);
+    const lobbySnapshot = await getDoc(lobbyref);
 
+    if(!lobbySnapshot.exists()) throw new Error("Lobby not found");
+
+    const lobby = lobbySnapshot.data() as Lobby;
+
+    // Remove player from lobby
+    const updatePlayers = lobby.players.filter(p => p.email !== player.email);
+    await updateDoc(lobbyref, {
+        players: updatePlayers,
+    });
+}
+
+export async function updateLobby(lobbyId: string, data: Partial<Lobby>) {
+    const lobbyRef = doc(db, 'lobbies', lobbyId);
+    await updateDoc(lobbyRef, data);
+}
 export const problems = writable<Problem[] | null>(null);
 export async function getProblems() {
     const unsubscribe = onSnapshot(

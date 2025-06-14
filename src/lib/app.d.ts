@@ -1,7 +1,7 @@
 import type { serverTimestamp } from 'firebase/firestore';
 
 declare global {
-    type LobbyStatus = 'waiting' | 'in progress' | 'completed';
+    type LobbyStatus = 'Waiting' | 'In Progress' | 'Completed';
 
     type LobbyPlayer = {
         id: string;
@@ -31,6 +31,7 @@ declare global {
 
     type Player = {
         username: string;
+        uid: string;
         email: string;
         password: string;
         DSA: boolean;

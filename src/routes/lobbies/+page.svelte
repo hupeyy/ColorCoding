@@ -5,8 +5,13 @@
     lobbies,
     getLobbies,
     joinLobby, 
-    createLobby
-  } from '$lib/firebase';
+    leaveLobby,
+    createLobby,
+    deleteLobby,
+    updateLobby
+  }
+
+  from '$lib/firebase';
   import { serverTimestamp } from 'firebase/firestore';
   import { Button } from '$lib/components/ui/button';
   import { onMount } from 'svelte';
@@ -26,7 +31,14 @@
       return;
     }
     await joinLobby(lobbyId, currPlayer);
-    window.location.href = `/lobbies/${lobbyId}`;
+  }
+
+  async function handleLobbyLeave(lobbyId: string) {
+    if (!currPlayer) {
+      alert("Please log in to leave a lobby.");
+      return;
+    }
+    await leaveLobby(lobbyId, currPlayer);
   }
 
   async function handleCreateLobby() {
@@ -40,13 +52,33 @@
       DSA: DSA,
       host: currPlayer,
       players: [currPlayer],
-      status: 'waiting',
+      status: 'Waiting',
       createdAt: serverTimestamp(),
       problemIDs: [],
     };
 
     await createLobby(lobby);
+    // NOTE: How are problems added to the lobby?
   }
+  
+  async function handleLobbyDelete(lobbyId: string) {
+    if (!currPlayer) {
+      alert("Please log in to delete a lobby.");
+      return;
+    }
+    const lobby = currLobbies?.find(l => l.id === lobbyId);
+    if (lobby && lobby.host.uid === currPlayer.uid) {
+      await deleteLobby(lobbyId);
+    } else {
+      alert("You are not the host of this lobby.");
+    }
+  }
+
+  async function handleLobbyStart(lobbyId: string) {
+    await updateLobby(lobbyId, {status: 'In Progress',});
+    window.location.href = `/lobbies/${lobbyId}`;
+  }
+  
 
   onMount(() => {
     const unsubscribeLobbies= getLobbies();
@@ -58,7 +90,21 @@
   });
 
   const headers = ['Lobby Name', 'Host', '# of Players', 'Status', 'DSA?', 'Join'];
+
+$effect(() => {
+  if(currLobbies && currPlayer && currLobbies.some(lobby => lobby.players.some(p => p.uid === currPlayer.uid) && lobby.status === 'In Progress')){
+    // Find the lobby the player is in
+    const lobby = currLobbies.find(
+      lobby => lobby.players.some(p => p.uid === currPlayer.uid) && lobby.status === 'In Progress'
+    );
+    if (lobby) {
+      window.location.href = `/lobbies/${lobby.id}`;
+    }
+  }
+});
+
 </script>
+
 
 {#if currLobbies === null}
   <p>Loading...</p>
@@ -96,9 +142,25 @@
           <Table.Cell>{lobby.host.username}</Table.Cell>
           <Table.Cell>{lobby.players.length} / {lobby.maxPlayers}</Table.Cell>
           <Table.Cell>{lobby.status}</Table.Cell>
-          <Table.Cell>{lobby.DSA}</Table.Cell>
-          <Table.Cell>
-            <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
+          <Table.Cell>{lobby.DSA.toString().charAt(0).toUpperCase() + lobby.DSA.toString().slice(1)}</Table.Cell>
+          <Table.Cell class="w-10">
+            {#if lobby.host.uid === currPlayer.uid && lobby.status === 'Waiting'}
+              <Button onclick={() => handleLobbyStart(lobby.id)}>Start</Button>
+            {:else if lobby.players.some(player => player.uid === currPlayer.uid) && lobby.status === 'Waiting'}
+              <Button onclick={() => handleLobbyLeave(lobby.id)}>Leave</Button>
+            {:else if lobby.status === 'Waiting' && lobby.players.length < lobby.maxPlayers}
+              <Button onclick={() => handleLobbyJoin(lobby.id)}>Join</Button>
+            {:else}
+              <Button disabled>Join</Button>
+            {/if}
+          </Table.Cell>
+          <!-- TODO: Maybe add an html alert for confirmation -->
+          <Table.Cell class="w-10">
+            {#if lobby.host.uid === currPlayer.uid}
+              <Button onclick={() => handleLobbyDelete(lobby.id)} class="w-10">🗑️</Button>
+            {:else}
+              <Button disabled class="w-10">🗑️</Button>
+            {/if}
           </Table.Cell>
         </Table.Row>
       {/each}
@@ -108,10 +170,10 @@
   <!-- sample guest lobby creation -->
   <div class="flex items-center justify-center p-6">
     <input type="text" bind:value={lobbyName} placeholder="Enter Lobby Name" class="px-2"/>
-    <p class="pl-2">Max Players: </p>
+    <p class="pl-2 p-1">Max Players: </p>
     <input type="number" bind:value={maxPlayers} min="1" max="100" class="pr-2"/>
     <label class="px-4">
-      <input type="checkbox" bind:checked={DSA} />
+      <input type="checkbox" bind:checked={DSA} /> 
       DSA Enabled
     </label>
     <Button onclick={handleCreateLobby} class="px-4">Create Lobby</Button>

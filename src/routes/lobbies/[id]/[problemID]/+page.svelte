@@ -7,6 +7,7 @@
   import { problems, getProblems } from '$lib/firebase';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
+  import {leaveLobby, currentPlayer, updateLobby} from '$lib/firebase';
 
   const languages = [
       { value: '71', label: 'Python (3.8.1)', lang: 'python'},
@@ -27,6 +28,9 @@
   let backendLanguage = $state(languages[0].lang); // default to the first language
 
 
+  let currPlayer = $derived<Player | null>($currentPlayer);
+  let lobbyHost: Player | null = null;
+  let lobbyId = $derived(page.params.id);
   let problemID = $derived(page.params.problemID);
   let problem = $state<Problem | null>(null);
   let testCases = $state<{input: string, output: string, result: string}[]>([]);
@@ -107,6 +111,18 @@
         }
       }
   }
+  async function exitLobby(lobbyId: string){
+    if (!currPlayer) {
+      alert("Please log in to exit the lobby.");
+      return;
+    }
+    // Compare username of host and current player
+    // if (lobbyHost && lobbyHost.uid === currPlayer.uid) {
+      await updateLobby(lobbyId, { status: 'Waiting' });
+    // }
+    await leaveLobby(lobbyId, currPlayer);
+    window.location.href = `/lobbies/`;
+  }
 
   $effect(() => {
     backendLanguage = languages.find(lang => lang.value === chosenLanguage)?.lang || languages[0].lang;
@@ -186,24 +202,29 @@
           <Resizable.Handle />
           <Resizable.Pane defaultSize={100}>
             <ScrollArea>
-              <div class="flex flex-row justify-between p-4">
-                <Button onclick={submitCode}>Submit Solution</Button>
-                <Button>Save Code</Button>
-              </div>
-              {#if executionResult}
-                <div>
-                  <h2>Execution Result</h2>
-                  <!-- <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p> -->
+              <div class="flex flex-col min-h-[400px] h-full">
+                <div class="flex flex-row justify-between p-4">
+                  <Button onclick={submitCode}>Submit Solution</Button>
+                  <Button>Save Code</Button>
                 </div>
-              {/if}
-              {#if error}
-                <div class="error">
-                  <p>Error: {error}</p>
-                </div>
-              {/if}
-            </ScrollArea>
-          </Resizable.Pane>
-        </Resizable.PaneGroup>
+                {#if executionResult}
+                  <div>
+                    <h2>Execution Result</h2>
+                    <!-- <p>Tests Passed: {executionResult.passed} / {executionResult.total}</p> -->
+                  </div>
+                {/if}
+                {#if error}
+                  <div class="error">
+                    <p>Error: {error}</p>
+                  </div>
+                {/if}
+                <div class="flex flex-row justify-end p-4 mt-auto">
+                <Button onclick={() => exitLobby(lobbyId)}>Exit Lobby</Button>
+                </div>   
+              </div>           
+            </ScrollArea>            
+          </Resizable.Pane>          
+        </Resizable.PaneGroup>        
       </Resizable.Pane>  
     </Resizable.PaneGroup>
   </div>
