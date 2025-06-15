@@ -46,6 +46,14 @@
       alert("Please log in to create a lobby.");
       return;
     }
+    if (!lobbyName.trim()) {
+      alert("Please enter a valid lobby name.");
+      return;
+    }
+    if (maxPlayers < 1 || maxPlayers > 100) {
+      alert("Max players must be between 1 and 100.");
+      return;
+    }
     const lobby: Omit<Lobby, 'id'> = {
       name: lobbyName,
       maxPlayers: maxPlayers,
@@ -67,7 +75,12 @@
       return;
     }
     const lobby = currLobbies?.find(l => l.id === lobbyId);
-    if (lobby && lobby.host.uid === currPlayer.uid) {
+    if (lobby && lobby.host.uid === currPlayer.uid){
+      // Confirm the host wants to delete the lobby
+      const confirmDelete = confirm("Are you sure you want to delete this lobby?");
+      if (!confirmDelete) {
+        return;
+      }
       await deleteLobby(lobbyId);
     } else {
       alert("You are not the host of this lobby.");
@@ -89,7 +102,7 @@
     } 
   });
 
-  const headers = ['Lobby Name', 'Host', '# of Players', 'Status', 'DSA?', 'Join'];
+  const headers = ['Lobby Name', 'Host', 'Players', 'Status', 'DSA?', 'Join'];
 
 $effect(() => {
   if(currLobbies && currPlayer && currLobbies.some(lobby => lobby.players.some(p => p.uid === currPlayer.uid) && lobby.status === 'In Progress')){
@@ -154,7 +167,6 @@ $effect(() => {
               <Button disabled>Join</Button>
             {/if}
           </Table.Cell>
-          <!-- TODO: Maybe add an html alert for confirmation -->
           <Table.Cell class="w-10">
             {#if lobby.host.uid === currPlayer.uid}
               <Button onclick={() => handleLobbyDelete(lobby.id)} class="w-10">🗑️</Button>
@@ -162,6 +174,7 @@ $effect(() => {
               <Button disabled class="w-10">🗑️</Button>
             {/if}
           </Table.Cell>
+          <!-- NOTE: Consider adding an edit lobby button to change the questions in the set -->
         </Table.Row>
       {/each}
     </Table.Body>
