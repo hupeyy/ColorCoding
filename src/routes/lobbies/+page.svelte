@@ -12,7 +12,7 @@
   }
 
   from '$lib/firebase';
-  import { serverTimestamp } from 'firebase/firestore';
+  import { doc, serverTimestamp } from 'firebase/firestore';
   import { Button } from '$lib/components/ui/button';
   import { onMount } from 'svelte';
   import * as Table from "$lib/components/ui/table/index.js";
@@ -20,7 +20,7 @@
   let lobbyName = $state("");
   let maxPlayers = $state(100);
   let DSA = $state(false);
-
+  
   // Svelte store objects
   let currPlayer = $derived<Player | null>($currentPlayer);
   let currLobbies = $derived<Lobby[] | null>($lobbies);
@@ -169,7 +169,7 @@ $effect(() => {
           </Table.Cell>
           <Table.Cell class="w-10">
             {#if lobby.host.uid === currPlayer.uid}
-              <Button onclick={() => handleLobbyDelete(lobby.id)} class="w-10">🗑️</Button>
+              <Button onclick={() => handleLobbyDelete(lobby.id)} class="w-10 cursor-pointer">🗑️</Button>
             {:else}
               <Button disabled class="w-10">🗑️</Button>
             {/if}
