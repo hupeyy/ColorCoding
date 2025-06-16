@@ -10,6 +10,7 @@
   import { onMount } from "svelte";
 
   let currPlayer = $derived<Player | null>($currentPlayer); // Current player derived store
+  let showPlayerInfo = $state(false);
 
   onMount(() => {
     const unsubscribe = getCurrentPlayer(); // Subscribe to current player changes
@@ -29,8 +30,21 @@
     />
   </Button>
 
-  <Button variant="outline" size="icon" onclick={() => (console.log("Current Player: ", currPlayer))}>
+  <Button variant="outline" size="icon" onclick={() => (showPlayerInfo = true)}>
     <User class="h-[1.2rem] w-[1.2rem]" />
   </Button>
 </div>
+
+<!-- Player Info Window -->
+{#if showPlayerInfo && currPlayer}
+  <div class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-xs w-full text-center">
+      <h2 class="text-xl font-semibold mb-4">Player Information</h2>
+        <p class = "mb-1"><strong>Username:</strong> {currPlayer.username}</p>
+        <p class = "mb-1"><strong>Email:</strong> {currPlayer.email}</p>
+        <p class = "mb-4"><strong>DSA:</strong> {currPlayer.DSA ? "Taken" : "Not Taken"}</p>
+      <Button variant="outline" size="sm" onclick={() => (showPlayerInfo = false)}>Close</Button>
+    </div>
+  </div>
+{/if}
 
