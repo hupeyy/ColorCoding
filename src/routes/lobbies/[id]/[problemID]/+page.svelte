@@ -7,7 +7,13 @@
   import { problems, getProblems } from '$lib/firebase';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import {leaveLobby, currentPlayer, updateLobby} from '$lib/firebase';
+  import {
+    leaveLobby,
+    currentPlayer, 
+    updateLobby,
+    lobbies,
+    getLobbies,
+  } from '$lib/firebase';
 
   const languages = [
       { value: '71', label: 'Python (3.8.1)', lang: 'python'},
@@ -29,8 +35,8 @@
 
 
   let currPlayer = $derived<Player | null>($currentPlayer);
-  let lobbyHost: Player | null = null;
   let lobbyId = $derived(page.params.id);
+  let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyId) || null);
   let problemID = $derived(page.params.problemID);
   let problem = $state<Problem | null>(null);
   let testCases = $state<{input: string, output: string, result: string}[]>([]);
@@ -111,16 +117,19 @@
         }
       }
   }
-  async function exitLobby(lobbyId: string){
+  async function exitLobby(lobbyId){
     if (!currPlayer) {
       alert("Please log in to exit the lobby.");
       return;
     }
-    // Compare username of host and current player
-    // if (lobbyHost && lobbyHost.uid === currPlayer.uid) {
-      await updateLobby(lobbyId, { status: 'Waiting' });
-    // }
-    await leaveLobby(lobbyId, currPlayer);
+    console.log("currPlayer:", currPlayer);
+    console.log("selectedLobby:", selectedLobby);
+    if(currPlayer.uid == selectedLobby?.host.uid){
+      await updateLobby(lobbyId, {status: 'Waiting',});
+    }
+    else{
+      await leaveLobby(lobbyId, currPlayer);
+    }
     window.location.href = `/lobbies/`;
   }
 
@@ -135,7 +144,7 @@
       problemLoaded = true;
       problem = $problems.find(p => p.id === problemID) || null;
       console.log("Problem ID:", problemID);      
-      if (problem) {
+      if(problem) {
         testCases = problem.inputs.map((input, index) => ({
           input: input,
           output: problem.outputs[index],
@@ -149,20 +158,29 @@
   let unsubscribeProblems: (() => void) | null = null;
 
   onMount(() => {
-    getProblems().then(unsub => {
-      unsubscribeProblems = unsub;
-    });
+    // getProblems().then(unsub => {
+    //   unsubscribeProblems = unsub;
+    // });
+
+    // return () => {
+    //   if (unsubscribeProblems) {
+    //     unsubscribeProblems();
+    //   }
+    // };
+    const unsubscribeLobbies = getLobbies();
+    const unsubscribeProblems = getProblems();
 
     return () => {
-      if (unsubscribeProblems) {
-        unsubscribeProblems();
-      }
-    };
+      unsubscribeLobbies();
+      unsubscribeProblems();
+    }
   });
 </script>
 
 {#if !problem}
-  Loading problem...
+  <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+    <p>Loading problem...</p>
+  </div>
 {:else}
   <div>
     <label for="language-select">Select Language:</label>
@@ -175,19 +193,22 @@
   <div class="h-[85vh] ">
     <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
       <Resizable.Pane defaultSize={40} style="overflow: auto;">
-        <h1 class="text-3xl">{problem["title"]}</h1>
-        <h2 class="pb-8">Difficulty: {problem["difficulty"]}</h2>
-        <p class="pb-8">{problem["description"]}</p>
-        <h2 class="text-2xl">Test Cases</h2>
-          <ul>
-            {#each testCases as testCase}
-              <li><strong>Input:</strong> {testCase["input"]}</li>
-              <li><strong>Expected Output:</strong> {testCase["output"]}</li>
-              <li><strong>Result:</strong><span class={testCase["result"] === "Passed" ? "text-green-500" : testCase["result"] === "Processing" ? 
-              "text-yellow-500" : "text-red-500"}>{" "}{testCase["result"]}</span></li>
-              <br />
-            {/each}
-          </ul>
+        <div class ="m-4">
+          <h1 class="text-3xl"><strong>{problem["title"]}</strong></h1>
+          <h2 class="pb-8">Difficulty: <span class={problem["difficulty"] === "Easy" ? "text-green-500" : problem["difficulty"] === "Medium" ?
+          "text-yellow-500": "text-red-500"}>{" "}{problem["difficulty"]}</span></h2>
+          <p class="pb-8">{problem["description"]}</p>
+          <h2 class="text-2xl"><strong>Test Cases</strong></h2>
+            <ul>
+              {#each testCases as testCase}
+                <li>Input:{" "}{testCase["input"]}</li>
+                <li>Expected Output:{" "}{testCase["output"]}</li>
+                <li>Result:{" "}<span class={testCase["result"] === "Passed" ? "text-green-500" : testCase["result"] === "Processing" ? 
+                "text-yellow-500" : "text-red-500"}>{" "}{testCase["result"]}</span></li>
+                <br />
+              {/each}
+            </ul>
+          </div>
       </Resizable.Pane>
       <ResizableHandle />
       <Resizable.Pane defaultSize={60}>

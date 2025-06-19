@@ -26,7 +26,10 @@
 
 </script>
 <div class="relative">
-  <div class="flex flex-row justify-end px-6 py-3 gap-4">
+  <div class="flex flex-row justify-end px-4 py-3 gap-4">
+    <div class="text-2xl font-semibold mr-auto">
+      <h1>Color Coding</h1>
+    </div>
     <Button onclick={toggleMode} variant="outline" size="icon">
       <Sun
         class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
