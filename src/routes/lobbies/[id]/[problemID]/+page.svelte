@@ -138,6 +138,7 @@
   $effect(() => {
     if(selectedLobby?.status === "Waiting" && currPlayer?.uid != selectedLobby?.host.uid) {
       // If the lobby is waiting and the current player is not the host, redirect to lobbies page
+      alert("The host has left the lobby. You are being redirected to the lobbies page.");
       window.location.href = '/lobbies';
     }
   });
