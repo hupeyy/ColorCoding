@@ -1,11 +1,13 @@
 <script>
   import { page } from '$app/state';
+  import { Button } from '$lib/components/ui/button';
   import { onMount } from 'svelte';
   import { 
     lobbies,
     getLobbies,
     problems,
     getProblems,
+    updateLobby
   } from '$lib/firebase';
   import * as Table from '$lib/components/ui/table';
 
@@ -19,6 +21,11 @@
       ? $problems.filter(problem => selectedLobby.problemIDs.includes(problem.id))
       : []
   );
+
+  async function returnToLobbies() {
+    await updateLobby(lobbyID, {status: 'Waiting',});
+    window.location.href = '/lobbies'
+  }
   
   onMount(async () => {
     const unsubscribeLobbies = getLobbies();
@@ -35,7 +42,10 @@
 {#if !selectedLobby}
   <p>Loading lobby...</p>
 {:else if selectedLobby.problemIDs.length === 0}
-  <p>No problems available in this lobby.</p>
+  <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+    <p>This lobby has no problems assigned.</p>
+    <Button onclick={() => {returnToLobbies()}} class="mt-4">Return to Lobbies</Button>
+  </div>
 {:else}
   <Table.Root>
     <Table.Caption>Problem List</Table.Caption>
