@@ -56,7 +56,8 @@
       email: email,
       username: username,
       password: password,
-      DSA: dsaBoolean
+      DSA: dsaBoolean,
+      uid: ""
     };
 
     if (password !== confirmPassword) {
@@ -322,5 +323,7 @@
   {/if}
 </div>
 {:else}
-  <div>Loading...</div>
+  <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+    <p>Loading...</p>
+  </div>
 {/if}

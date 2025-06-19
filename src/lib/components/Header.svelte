@@ -49,7 +49,7 @@
     <div class="absolute top-full right-0 bg-white dark:bg-gray-800 p-4 rounded-lg max-w-xs text-center z-50 mr-6 justify-center">
       <div class="flex items-end mb-4">
         <User class="h-12 w-12 rounded-full mr-8 ml-2" />
-        <h2 class="text-xl font-semibold mb-1"><strong>{currPlayer.username}</strong></h2>
+        <h2 class="text-xl text-center font-semibold mb-1"><strong>{currPlayer.username}</strong></h2>
       </div>
       <div class = "text-left">     
         <p class = "mb-1"><strong>Email:</strong> {currPlayer.email}</p>

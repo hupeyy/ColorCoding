@@ -88,9 +88,9 @@
               }
 
               response = await getResponse.json();
-              console.log("Response:");
-              console.log(response);
-              console.log(response.status.description);
+              // console.log("Response:");
+              // console.log(response);
+              // console.log(response.status.description);
 
               if (response.status.description !== "In Queue" && response.status.description !== "Processing") {
                 clearInterval(intervalId);
@@ -122,8 +122,6 @@
       alert("Please log in to exit the lobby.");
       return;
     }
-    console.log("currPlayer:", currPlayer);
-    console.log("selectedLobby:", selectedLobby);
     if(currPlayer.uid == selectedLobby?.host.uid){
       await updateLobby(lobbyId, {status: 'Waiting',});
     }
@@ -135,22 +133,28 @@
 
   $effect(() => {
     backendLanguage = languages.find(lang => lang.value === chosenLanguage)?.lang || languages[0].lang;
-    console.log("Language: " + backendLanguage);
   })
+
+  $effect(() => {
+    if(selectedLobby?.status === "Waiting" && currPlayer?.uid != selectedLobby?.host.uid) {
+      // If the lobby is waiting and the current player is not the host, redirect to lobbies page
+      window.location.href = '/lobbies';
+    }
+  });
 
   //Subscribe to problems store and find the specific problem
   $effect(() => {
     if ($problems && problemLoaded== false) {
       problemLoaded = true;
       problem = $problems.find(p => p.id === problemID) || null;
-      console.log("Problem ID:", problemID);      
+      // console.log("Problem ID:", problemID);      
       if(problem) {
         testCases = problem.inputs.map((input, index) => ({
           input: input,
           output: problem.outputs[index],
           result: "",
         }));
-        console.log("Test Cases:", testCases);
+        // console.log("Test Cases:", testCases);
       }
     }
   });
@@ -158,15 +162,6 @@
   let unsubscribeProblems: (() => void) | null = null;
 
   onMount(() => {
-    // getProblems().then(unsub => {
-    //   unsubscribeProblems = unsub;
-    // });
-
-    // return () => {
-    //   if (unsubscribeProblems) {
-    //     unsubscribeProblems();
-    //   }
-    // };
     const unsubscribeLobbies = getLobbies();
     const unsubscribeProblems = getProblems();
 
@@ -182,15 +177,16 @@
     <p>Loading problem...</p>
   </div>
 {:else}
-  <div>
+  <div class="ml-4 my-1">
     <label for="language-select">Select Language:</label>
-    <select id="language-select" bind:value={chosenLanguage}>
+    <select id="language-select" bind:value={chosenLanguage}
+    class="ml-2 p-1 rounded">
       {#each languages as lang}
         <option value={lang.value}>{lang.label}</option>
       {/each}
     </select>
   </div>
-  <div class="h-[85vh] ">
+  <div class="h-[82vh] ">
     <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
       <Resizable.Pane defaultSize={40} style="overflow: auto;">
         <div class ="m-4">
@@ -238,15 +234,15 @@
                   <div class="error">
                     <p>Error: {error}</p>
                   </div>
-                {/if}
-                <div class="flex flex-row justify-end p-4 mt-auto">
-                <Button onclick={() => exitLobby(lobbyId)}>Exit Lobby</Button>
-                </div>   
+                {/if}  
               </div>           
             </ScrollArea>            
           </Resizable.Pane>          
         </Resizable.PaneGroup>        
       </Resizable.Pane>  
     </Resizable.PaneGroup>
+    <div class="fixed flex justify-end items-end p-4 bottom-0 right-0">
+      <Button onclick={() => exitLobby(lobbyId)}>Exit Lobby</Button>
+    </div>
   </div>
 {/if}
