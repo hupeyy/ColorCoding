@@ -27,7 +27,7 @@
 </script>
 <div class="relative">
   <div class="flex flex-row justify-end px-4 py-3 gap-4">
-    <div class="text-2xl font-semibold mr-auto">
+    <div class="text-2xl font-semibold mr-auto items-center flex">
       <h1>Color Coding</h1>
     </div>
     <Button onclick={toggleMode} variant="outline" size="icon">

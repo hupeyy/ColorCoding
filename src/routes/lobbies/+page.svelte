@@ -120,9 +120,13 @@ $effect(() => {
 
 
 {#if currLobbies === null}
-  <p>Loading...</p>
+  <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+    <p>Loading...</p>
+  </div>
 {:else if !currPlayer}
-  <p>Please log in</p>
+  <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+    <p>Please log in</p>
+  </div>
 {:else if currLobbies.length === 0}
   <p>No Lobbies Created</p>
   <!-- sample guest lobby creation -->

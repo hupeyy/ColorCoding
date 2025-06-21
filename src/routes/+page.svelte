@@ -103,7 +103,7 @@
       email = '';
       password = '';
       showSignInSection = false;
-      alert("User signed in successfully!");
+      // alert("User signed in successfully!");
       window.location.href = `/lobbies/`;
     } catch(error: any) {
       console.error("Sign-in error:", error);

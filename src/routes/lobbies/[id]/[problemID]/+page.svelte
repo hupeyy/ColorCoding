@@ -1,5 +1,6 @@
 <script lang="ts">
   import MonacoEditor from '$lib/components/MonacoEditor.svelte';
+  import { slide } from 'svelte/transition';
   import { ScrollArea } from "$lib/components/ui/scroll-area/index.js"; 
   import * as Resizable from "$lib/components/ui/resizable";
   import ResizableHandle from '$lib/components/ui/resizable/resizable-handle.svelte';
@@ -26,9 +27,9 @@
   ];
     
   let editorComponent: MonacoEditor;
+  let prevProblemID: string | null = null;
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
-  let problemLoaded = false;
   let chosenLanguage = $state(languages[0].value); // default to the first language
   let code = $state("print('Hello World!')");
   let backendLanguage = $state(languages[0].lang); // default to the first language
@@ -40,6 +41,8 @@
   let problemID = $derived(page.params.problemID);
   let problem = $state<Problem | null>(null);
   let testCases = $state<{input: string, output: string, result: string}[]>([]);
+  let showProblemList = $state(false);
+  let dropdownRef = $state<HTMLElement | null>(null);
 
   async function submitCode() {
       for (let i = 0; i < testCases.length; i++) {
@@ -131,9 +134,15 @@
     window.location.href = `/lobbies/`;
   }
 
+  function handleClick(event) {
+    if (showProblemList && dropdownRef && !event.composedPath().includes(dropdownRef)) {
+      showProblemList = false;
+    }
+  }
+
   $effect(() => {
     backendLanguage = languages.find(lang => lang.value === chosenLanguage)?.lang || languages[0].lang;
-  })
+  });
 
   $effect(() => {
     if(selectedLobby?.status === "Waiting" && currPlayer?.uid != selectedLobby?.host.uid) {
@@ -143,19 +152,28 @@
     }
   });
 
+  $effect(() => {
+    if(showProblemList) {
+      window.addEventListener('pointerdown', handleClick);
+    } else {
+      window.removeEventListener('pointerdown', handleClick);
+    }
+  });
+
   //Subscribe to problems store and find the specific problem
   $effect(() => {
-    if ($problems && problemLoaded== false) {
-      problemLoaded = true;
+    if ($problems && problemID) {
+      if (prevProblemID !== problemID) {
+        showProblemList = false; // Only close when navigating to a new problem
+        prevProblemID = problemID;
+      }
       problem = $problems.find(p => p.id === problemID) || null;
-      // console.log("Problem ID:", problemID);      
       if(problem) {
         testCases = problem.inputs.map((input, index) => ({
           input: input,
           output: problem.outputs[index],
           result: "",
         }));
-        // console.log("Test Cases:", testCases);
       }
     }
   });
@@ -178,8 +196,15 @@
     <p>Loading problem...</p>
   </div>
 {:else}
-  <div class="ml-4 my-1">
-    <label for="language-select">Select Language:</label>
+  <div class="flex items-center border-t-2 py-2">
+    <Button 
+      onclick={() => {showProblemList=true;}} 
+      disabled={showProblemList} 
+      class="mr-4 ml-2"
+      variant="secondary">
+      Problem List
+    </Button>
+    <label for="language-select">Language:</label>
     <select id="language-select" bind:value={chosenLanguage}
     class="ml-2 p-1 rounded">
       {#each languages as lang}
@@ -187,7 +212,7 @@
       {/each}
     </select>
   </div>
-  <div class="h-[82vh] ">
+  <div class="h-[80vh]">
     <Resizable.PaneGroup direction="horizontal" class="rounded-md border-2">
       <Resizable.Pane defaultSize={40} style="overflow: auto;">
         <div class ="m-4">
@@ -202,7 +227,7 @@
                 <li>Expected Output:{" "}{testCase["output"]}</li>
                 <li>Result:{" "}<span class={testCase["result"] === "Passed" ? "text-green-500" : testCase["result"] === "Processing" ? 
                 "text-yellow-500" : "text-red-500"}>{" "}{testCase["result"]}</span></li>
-                <br />
+                <br> <!-- Line Break  -->
               {/each}
             </ul>
           </div>
@@ -245,5 +270,23 @@
     <div class="fixed flex justify-end items-end p-4 bottom-0 right-0">
       <Button onclick={() => exitLobby(lobbyId)}>Exit Lobby</Button>
     </div>
+  </div>
+{/if}
+<!--Problem List Dropdown -->
+{#if showProblemList}
+  <div bind:this={dropdownRef} class="absolute top-20 mt-10 left-2 bg-white dark:bg-gray-800 p-4 rounded-md max-w-xs min-w-[260px] shadow-lg z-50"
+    transition:slide={{duration: 250}}>
+    <div class="flex justify-between items-center mb-2">
+      <h1 class="text-2xl"><strong>Problems</strong></h1>
+    </div>
+    <ul>
+      {#each $problems.filter(p => selectedLobby?.problemIDs?.includes(p.id)) as p}
+        <li class="flex justify-between items-center">
+          <a href={`/lobbies/${lobbyId}/${p.id}`} class="text-blue-500 hover:underline">{p.title}</a>
+          <!-- TODO: Make it change with question completion -->
+          <p>Incomplete</p>
+        </li>
+      {/each}
+    </ul>
   </div>
 {/if}

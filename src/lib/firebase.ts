@@ -243,6 +243,6 @@ export async function signIn(email: string, password: string) {
             throw new Error("Player not found");
         }
     } catch (error: any) {
-        throw new Error("Sign in failed ", error);
+        throw new Error("Incorrect Credentials", error);
     }
 }
