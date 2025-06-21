@@ -110,9 +110,11 @@ export async function joinLobby(lobbyId: string, player: Player) {
     if(lobby.players.length >= lobby.maxPlayers) throw new Error("Lobby is full");
 
     const updatePlayers = [...lobby.players, player];
+    const updateScores = {...lobby.scores, [player.uid]: 0};
 
     await updateDoc(lobbyref, {
         players: updatePlayers,
+        scores: updateScores,
     });
 }
 export async function leaveLobby(lobbyId: string, player: Player) {
@@ -125,8 +127,14 @@ export async function leaveLobby(lobbyId: string, player: Player) {
 
     // Remove player from lobby
     const updatePlayers = lobby.players.filter(p => p.email !== player.email);
+    
+    // Remove player from scores
+    const updateScores = Object.fromEntries(
+        Object.entries(lobby.scores).filter(([uid, _]) => uid !== player.uid)
+    );
     await updateDoc(lobbyref, {
         players: updatePlayers,
+        scores: updateScores,
     });
 }
 

@@ -18,6 +18,7 @@ declare global {
         host: Player;
         id: string;
         name: string;
+        scores: Record<string, number>;
     }
 
     type Problem = {
@@ -35,6 +36,7 @@ declare global {
         email: string;
         password: string;
         DSA: boolean;
+        rank: number;
     }
 }
 

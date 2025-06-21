@@ -63,6 +63,7 @@
       status: 'Waiting',
       createdAt: serverTimestamp(),
       problemIDs: [],
+      scores: {[currPlayer.uid]: 0},
     };
 
     await createLobby(lobby);

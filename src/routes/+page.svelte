@@ -57,7 +57,8 @@
       username: username,
       password: password,
       DSA: dsaBoolean,
-      uid: ""
+      uid: "",
+      rank: 0
     };
 
     if (password !== confirmPassword) {
