@@ -30,15 +30,16 @@
   let prevProblemID: string | null = null;
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
-  let chosenLanguage = $state(languages[0].value); // default to the first language
-  let code = $state("print('Hello World!')");
-  let backendLanguage = $state(languages[0].lang); // default to the first language
-
+  let problemLoaded = false;
 
   let currPlayer = $derived<Player | null>($currentPlayer);
   let lobbyId = $derived(page.params.id);
   let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyId) || null);
   let problemID = $derived(page.params.problemID);
+
+  let chosenLanguage = $state(languages[0].value); // default to the first language
+  let code = $state("print('Hello World!')");
+  let backendLanguage = $state(languages[0].lang); // default to the first language
   let problem = $state<Problem | null>(null);
   let testCases = $state<{input: string, output: string, result: string}[]>([]);
   let showProblemList = $state(false);
@@ -139,6 +140,15 @@
       showProblemList = false;
     }
   }
+  
+  function handleProblemChange(problemId){
+    problemLoaded = false;
+    if (prevProblemID !== problemId) {
+      prevProblemID = problemId;
+      problemID = problemId;
+      showProblemList = false;
+    }
+  }
 
   $effect(() => {
     backendLanguage = languages.find(lang => lang.value === chosenLanguage)?.lang || languages[0].lang;
@@ -160,14 +170,28 @@
     }
   });
 
+  $effect(() => {
+    // Check if all test cases have passed
+    const allPassed = testCases.every(testCase => testCase.result === "Passed");
+    if(allPassed && problemID && currPlayer) {
+      updateLobby(lobbyId, {
+        playerData: 
+        {...selectedLobby?.playerData,
+          [currPlayer?.uid]: 
+          {...selectedLobby?.playerData[currPlayer?.uid],
+            problemsSolved: 
+            {...selectedLobby?.playerData[currPlayer?.uid]?.problemsSolved, [problemID]: problem?.difficulty}
+          }
+        }
+      });
+    }
+  });
+
   //Subscribe to problems store and find the specific problem
   $effect(() => {
-    if ($problems && problemID) {
-      if (prevProblemID !== problemID) {
-        showProblemList = false; // Only close when navigating to a new problem
-        prevProblemID = problemID;
-      }
-      problem = $problems.find(p => p.id === problemID) || null;
+    if ($problems && problemID && problemLoaded== false) {
+      problemLoaded = true;
+      problem = $problems.find(p => p.id === problemID) || null;     
       if(problem) {
         testCases = problem.inputs.map((input, index) => ({
           input: input,
@@ -199,7 +223,7 @@
   <div class="flex items-center border-t-2 py-2">
     <Button 
       onclick={() => {showProblemList=true;}} 
-      disabled={showProblemList} 
+      disabled={showProblemList}
       class="mr-4 ml-2"
       variant="secondary">
       Problem List
@@ -282,9 +306,13 @@
     <ul>
       {#each $problems.filter(p => selectedLobby?.problemIDs?.includes(p.id)) as p}
         <li class="flex justify-between items-center">
-          <a href={`/lobbies/${lobbyId}/${p.id}`} class="text-blue-500 hover:underline">{p.title}</a>
-          <!-- TODO: Make it change with question completion -->
-          <p>Incomplete</p>
+          <Button variant="link" class="text-blue-500 hover:underline p-0 m-0" onclick={() => handleProblemChange(p.id)}>{p.title}</Button>
+          <!-- Check if problem is marked as complete in lobby playerData -->
+          {#if selectedLobby?.playerData?.[currPlayer?.uid]?.problemsSolved?.[p.id]}
+            <span class="text-green-500">Complete</span>
+          {:else}
+            <span class="text-yellow-500">Incomplete</span>
+          {/if}
         </li>
       {/each}
     </ul>

@@ -70,7 +70,7 @@
   </div>
 {:else if selectedLobby.problemIDs.length === 0}
   <div class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-    <p>This lobby has no problems assigned.</p>
+    <p>This lobby has no problems.</p>
     <Button onclick={() => {returnToLobbies()}} class="mt-4">Return to Lobbies</Button>
   </div>
 {:else}
