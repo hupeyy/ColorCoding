@@ -44,6 +44,7 @@
   let testCases = $state<{input: string, output: string, result: string}[]>([]);
   let showProblemList = $state(false);
   let dropdownRef = $state<HTMLElement | null>(null);
+  let problemsFinished = $state(false);
 
   async function submitCode() {
       for (let i = 0; i < testCases.length; i++) {
@@ -185,6 +186,11 @@
         }
       });
     }
+    // If all problems are finished, set problemsFinished to true
+    const allProblemsFinished = Object.keys(selectedLobby?.playerData?.[currPlayer?.uid]?.problemsSolved || {}).length === selectedLobby?.problemIDs?.length;
+    if(allProblemsFinished) {
+      problemsFinished = true;
+    }
   });
 
   //Subscribe to problems store and find the specific problem
@@ -291,6 +297,11 @@
         </Resizable.PaneGroup>        
       </Resizable.Pane>  
     </Resizable.PaneGroup>
+    {#if problemsFinished}
+      <div class="fixed flex justify-center items-center bottom-0 left-0 p-4">
+        <Button onclick={() => (window.location.href = `/lobbies/${lobbyId}/finished`)}>Finish Problem Set</Button>
+      </div>
+    {/if}
     <div class="fixed flex justify-end items-end p-4 bottom-0 right-0">
       <Button onclick={() => exitLobby(lobbyId)}>Exit Lobby</Button>
     </div>
