@@ -112,7 +112,8 @@ export async function joinLobby(lobbyId: string, player: Player) {
     const updatePlayers = [...lobby.players, player];
     const updatePlayerData = {...lobby.playerData,
         [player.uid]: {
-            problemsSolved: {} // empty map for new player
+            problemsSolved: {},
+            solveTime: 0
         }
     };
 

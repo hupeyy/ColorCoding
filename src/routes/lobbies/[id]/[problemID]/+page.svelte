@@ -181,7 +181,9 @@
           [currPlayer?.uid]: 
           {...selectedLobby?.playerData[currPlayer?.uid],
             problemsSolved: 
-            {...selectedLobby?.playerData[currPlayer?.uid]?.problemsSolved, [problemID]: problem?.difficulty}
+            {...selectedLobby?.playerData[currPlayer?.uid]?.problemsSolved, [problemID]: problem?.difficulty},
+            solveTime: 
+            0
           }
         }
       });
@@ -299,6 +301,7 @@
     </Resizable.PaneGroup>
     {#if problemsFinished}
       <div class="fixed flex justify-center items-center bottom-0 left-0 p-4">
+        <!-- TODO: Update the solveTime -->
         <Button onclick={() => (window.location.href = `/lobbies/${lobbyId}/finished`)}>Finish Problem Set</Button>
       </div>
     {/if}
