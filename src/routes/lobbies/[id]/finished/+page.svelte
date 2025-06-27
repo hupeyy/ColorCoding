@@ -111,7 +111,7 @@
                 {#each playerScores as player}
                 <Table.Row>
                     <Table.Cell class="text-left">{findUsername(player.uid)}</Table.Cell>
-                    <Table.Cell class="text-center">{player.solveTime}</Table.Cell>
+                    <Table.Cell class="text-center">{player.solveTime} sec</Table.Cell>
                     <Table.Cell class="text-right">{player.score}</Table.Cell>
                 </Table.Row>
                 {/each}

@@ -31,7 +31,6 @@
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
   let problemLoaded = false;
-  let runTime = 0;
 
   let currPlayer = $derived<Player | null>($currentPlayer);
   let lobbyId = $derived(page.params.id);
@@ -42,87 +41,72 @@
   let code = $state("print('Hello World!')");
   let backendLanguage = $state(languages[0].lang); // default to the first language
   let problem = $state<Problem | null>(null);
-  let testCases = $state<{input: string, output: string, result: string}[]>([]);
+  let testCases = $state<{input: string, output: string, result: string, runtime: number}[]>([]);
   let showProblemList = $state(false);
   let dropdownRef = $state<HTMLElement | null>(null);
   let problemsFinished = $state(false);
+  let runTime = $state(-1);
 
   async function submitCode() {
-      for (let i = 0; i < testCases.length; i++) {
-        try {
-          // Update test case status to indicate processing
-          testCases[i].result = "Processing";
-          testCases = [...testCases];
+    // For each test case, create a promise that resolves when the polling is done
+    const promises = testCases.map((testCase, i) => {
+      return new Promise<void>((resolve) => {
+        testCases[i].result = "Processing";
+        testCases = [...testCases];
 
-          // Prepare the submission object
-          const submission = {
-            source_code: editorComponent.getValue(),
-            language_id: chosenLanguage,
-            expected_output: testCases[i].output,
-            stdin: testCases[i].input,
-          };
+        const submission = {
+          source_code: editorComponent.getValue(),
+          language_id: chosenLanguage,
+          expected_output: testCases[i].output,
+          stdin: testCases[i].input,
+        };
 
-          const submit = await fetch('http://localhost:2358/submissions/?base64_encoded=false&wait=false', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(submission),
-          });
+        fetch('http://localhost:2358/submissions/?base64_encoded=false&wait=false', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submission),
+        })
+          .then(submit => submit.json())
+          .then(submissionToken => {
+            const intervalId = setInterval(async () => {
+              try {
+                const getResponse = await fetch(
+                  `http://localhost:2358/submissions/${submissionToken.token}?base64_encoded=false`,
+                  { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+                );
+                const response = await getResponse.json();
+                if (response.status.description !== "In Queue" && response.status.description !== "Processing") {
+                  clearInterval(intervalId);
+                  testCases[i].result = response.status.description === 'Accepted' ? 'Passed' : 'Failed';
+                  testCases[i].runtime = response.time || 0;
+                  testCases = [...testCases];
 
-          if (!submit.ok) {
-            throw new Error(`Failed to submit code: ${submit.statusText}`);
-          }
+                  // Log responses for debugging
+                  // console.log(response);
+                  // console.log(response.status.description);
 
-          const submissionToken = await submit.json();
-          let response;
-
-          const intervalId = setInterval(async () => {
-            try {
-              const getResponse = await fetch(
-                `http://localhost:2358/submissions/${submissionToken.token}?base64_encoded=false`,
-                {
-                  method: 'GET',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
+                  resolve(); // <-- Mark this test case as done
                 }
-              );
-
-              if (!getResponse.ok) {
-                throw new Error(`Failed to fetch submission result: ${getResponse.statusText}`);
-              }
-
-              response = await getResponse.json();
-              console.log("Response:");
-              console.log(response);
-              console.log(response.status.description);
-
-              if (response.status.description !== "In Queue" && response.status.description !== "Processing") {
+              } catch (error) {
                 clearInterval(intervalId);
-
-                // Update the result for the current test case
-                testCases[i].result = response.status.description === 'Accepted' ? 'Passed' : 'Failed';
-
-                // Reassign the testCases array to trigger reactivity
+                testCases[i].result = "Error";
                 testCases = [...testCases];
+                resolve();
               }
-              
-            } catch (error) {
-              clearInterval(intervalId);
-              console.error("Error fetching submission result:", error);
-              testCases[i].result = "Error";
-              testCases = [...testCases];
-            }
-          }, 1500);
-        } catch (error) {
-          console.error("Error during submission:", error);
-          testCases[i].result = "Error";
-          testCases = [...testCases];
-          break; // Stop further execution if an error occurs
-        }
-      }
+            }, 1500);
+          })
+          .catch(error => {
+            testCases[i].result = "Error";
+            testCases = [...testCases];
+            resolve();
+          });
+      });
+    });
+
+    // Wait for all test cases to finish
+    await Promise.all(promises);
   }
+
   async function exitLobby(lobbyId){
     if (!currPlayer) {
       alert("Please log in to exit the lobby.");
@@ -137,6 +121,28 @@
     window.location.href = `/lobbies/`;
   }
 
+  function handleCodeSave(){
+    // TODO: Implement code saving functionality
+    alert("Code saved successfully!");
+  }
+
+  function calculateRuntime() {
+  // TODO: Use runtimes to impact the amount of awarded points.
+  // Might need to save the runtime in the database.
+  // Ensure that only the best runtime is saved for each problem.
+  const validRuntimes = testCases
+    .map(tc => Number(tc.runtime))
+    .filter(rt => !isNaN(rt) && rt > 0);
+
+  if (validRuntimes.length === 0) {
+    runTime = -1;
+    return;
+  }
+
+  const sum = validRuntimes.reduce((total, rt) => total + rt, 0);
+  runTime = Number((sum / validRuntimes.length).toFixed(2));
+}
+
   function handleClick(event) {
     if (showProblemList && dropdownRef && !event.composedPath().includes(dropdownRef)) {
       showProblemList = false;
@@ -145,6 +151,7 @@
   
   function handleProblemChange(problemId){
     problemLoaded = false;
+    runTime = -1;
     if (prevProblemID !== problemId) {
       prevProblemID = problemId;
       problemID = problemId;
@@ -154,9 +161,10 @@
 
   function handleFinishProblemSet() {
     if (currPlayer && problemID && selectedLobby) {
-      // Calculate the solve time by subtracting the lobby's start time from the current time
-      const solveTime = Date.now() - selectedLobby.startTime;
+      // NOTE: Consider using a more accurate time calculation method
+      const solveTime = Number(((Date.now() - selectedLobby.startTime) / 1000).toFixed(2));
       // Update the lobby with the player's solve time
+      // FIXME: Running code sets the solveTime to 0 for some reason.
       updateLobby(lobbyId, {
         playerData: {
           ...selectedLobby.playerData,
@@ -212,7 +220,7 @@
       });
     }
     // If all problems are finished, set problemsFinished to true
-    const allProblemsFinished = Object.keys(selectedLobby?.playerData?.[currPlayer?.uid]?.problemsSolved || {}).length === selectedLobby?.problemIDs?.length;
+    const allProblemsFinished = Object.keys(selectedLobby?.playerData?.[currPlayer?.uid ?? '']?.problemsSolved || {}).length === selectedLobby?.problemIDs?.length;
     if(allProblemsFinished) {
       problemsFinished = true;
     }
@@ -228,6 +236,7 @@
           input: input,
           output: problem.outputs[index],
           result: "",
+          runtime: -1
         }));
       }
     }
@@ -274,7 +283,12 @@
           <h1 class="text-3xl"><strong>{problem["title"]}</strong></h1>
           <h2 class="pb-8">Difficulty: <span class={problem["difficulty"] === "Easy" ? "text-green-500" : problem["difficulty"] === "Medium" ?
           "text-yellow-500": "text-red-500"}>{" "}{problem["difficulty"]}</span></h2>
-          <p class="pb-8">{problem["description"]}</p>
+          <p class="pb-4">{problem["description"]}</p>
+          <h3 class="pb-8"><strong>Average Runtime:</strong> 
+            {#if runTime != -1}
+              {runTime} ms
+            {/if}
+            </h3>
           <h2 class="text-2xl"><strong>Test Cases</strong></h2>
             <ul>
               {#each testCases as testCase}
@@ -302,8 +316,8 @@
             <ScrollArea>
               <div class="flex flex-col min-h-[400px] h-full">
                 <div class="flex flex-row justify-between p-4">
-                  <Button onclick={submitCode}>Submit Solution</Button>
-                  <Button>Save Code</Button>
+                  <Button onclick={async () => { await submitCode(); calculateRuntime(); }}>Submit Solution</Button>
+                  <Button onclick={() => handleCodeSave()}>Save Code</Button>
                 </div>
                 {#if executionResult}
                   <div>
@@ -324,7 +338,6 @@
     </Resizable.PaneGroup>
     {#if problemsFinished}
       <div class="fixed flex justify-center items-center bottom-0 left-0 p-4">
-        <!-- TODO: Update the solveTime -->
         <Button onclick={() => handleFinishProblemSet()}>Finish Problem Set</Button>
       </div>
     {/if}
@@ -341,11 +354,11 @@
       <h1 class="text-2xl"><strong>Problems</strong></h1>
     </div>
     <ul>
-      {#each $problems.filter(p => selectedLobby?.problemIDs?.includes(p.id)) as p}
+      {#each ($problems ?? []).filter(p => selectedLobby?.problemIDs?.includes(p.id)) as p}
         <li class="flex justify-between items-center">
           <Button variant="link" class="text-blue-500 hover:underline p-0 m-0" onclick={() => handleProblemChange(p.id)}>{p.title}</Button>
           <!-- Check if problem is marked as complete in lobby playerData -->
-          {#if selectedLobby?.playerData?.[currPlayer?.uid]?.problemsSolved?.[p.id]}
+          {#if currPlayer && selectedLobby?.playerData?.[currPlayer.uid]?.problemsSolved?.[p.id]}
             <span class="text-green-500">Complete</span>
           {:else}
             <span class="text-yellow-500">Incomplete</span>
