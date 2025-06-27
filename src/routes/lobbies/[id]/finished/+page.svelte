@@ -5,8 +5,6 @@
     import { 
         lobbies,
         getLobbies,
-        problems,
-        getProblems,
         updateLobby,
         currentPlayer,
         leaveLobby
@@ -17,7 +15,7 @@
     let currPlayer = $derived<Player | null>($currentPlayer);
     let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyId) || null);
     
-    let playerScores = $state<{uid: string, score: number}[]>([]);
+    let playerScores = $state<{uid: string, score: number, solveTime: number}[]>([]);
     let dataLoaded = $state(false);
 
     async function exitLobby(lobbyId){
@@ -63,7 +61,8 @@
         //Run calculateScore for each player in the lobby and store the results in playerScores
         playerScores = Object.entries(selectedLobby?.playerData || {}).map(([uid, data]) => ({
             uid,
-            score: calculateScore(uid)
+            score: calculateScore(uid),
+            solveTime: data.solveTime || 0
         }));
         playerScores.sort((a, b) => b.score - a.score);
     }
@@ -104,6 +103,7 @@
             <Table.Header>
                 <Table.Row>
                     <Table.Head class="text-left">Player</Table.Head>
+                    <Table.Head class="text-center">Time</Table.Head>
                     <Table.Head class="text-right">Score</Table.Head>
                 </Table.Row>
             </Table.Header>
@@ -111,6 +111,7 @@
                 {#each playerScores as player}
                 <Table.Row>
                     <Table.Cell class="text-left">{findUsername(player.uid)}</Table.Cell>
+                    <Table.Cell class="text-center">{player.solveTime}</Table.Cell>
                     <Table.Cell class="text-right">{player.score}</Table.Cell>
                 </Table.Row>
                 {/each}

@@ -31,6 +31,7 @@
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
   let problemLoaded = false;
+  let runTime = 0;
 
   let currPlayer = $derived<Player | null>($currentPlayer);
   let lobbyId = $derived(page.params.id);
@@ -93,9 +94,9 @@
               }
 
               response = await getResponse.json();
-              // console.log("Response:");
-              // console.log(response);
-              // console.log(response.status.description);
+              console.log("Response:");
+              console.log(response);
+              console.log(response.status.description);
 
               if (response.status.description !== "In Queue" && response.status.description !== "Processing") {
                 clearInterval(intervalId);
@@ -148,6 +149,28 @@
       prevProblemID = problemId;
       problemID = problemId;
       showProblemList = false;
+    }
+  }
+
+  function handleFinishProblemSet() {
+    if (currPlayer && problemID && selectedLobby) {
+      // Calculate the solve time by subtracting the lobby's start time from the current time
+      const solveTime = Date.now() - selectedLobby.startTime;
+      // Update the lobby with the player's solve time
+      updateLobby(lobbyId, {
+        playerData: {
+          ...selectedLobby.playerData,
+          [currPlayer.uid]: {
+            ...selectedLobby.playerData[currPlayer.uid],
+            problemsSolved: {
+              ...selectedLobby.playerData[currPlayer.uid]?.problemsSolved,
+              [problemID]: problem?.difficulty
+            },
+            solveTime: solveTime
+          }
+        }
+      });
+      window.location.href = `/lobbies/${lobbyId}/finished`
     }
   }
 
@@ -302,7 +325,7 @@
     {#if problemsFinished}
       <div class="fixed flex justify-center items-center bottom-0 left-0 p-4">
         <!-- TODO: Update the solveTime -->
-        <Button onclick={() => (window.location.href = `/lobbies/${lobbyId}/finished`)}>Finish Problem Set</Button>
+        <Button onclick={() => handleFinishProblemSet()}>Finish Problem Set</Button>
       </div>
     {/if}
     <div class="fixed flex justify-end items-end p-4 bottom-0 right-0">

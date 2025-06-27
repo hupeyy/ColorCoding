@@ -91,6 +91,7 @@
 
   async function handleLobbyStart(lobbyId: string) {
     await updateLobby(lobbyId, {status: 'In Progress',});
+    await updateLobby(lobbyId, {startTime: Date.now()});
     window.location.href = `/lobbies/${lobbyId}`;
   }
   
