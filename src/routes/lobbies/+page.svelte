@@ -63,8 +63,7 @@
       status: 'Waiting',
       createdAt: serverTimestamp(),
       problemIDs: [],
-      startTime: Date.now(),
-      playerData: {[currPlayer.uid]: {problemsSolved: {}, solveTime: 0}},
+      playerData: {[currPlayer.uid]: {problemsSolved: {}}},
     };
 
     await createLobby(lobby);
@@ -91,7 +90,6 @@
 
   async function handleLobbyStart(lobbyId: string) {
     await updateLobby(lobbyId, {status: 'In Progress',});
-    await updateLobby(lobbyId, {startTime: Date.now()});
     window.location.href = `/lobbies/${lobbyId}`;
   }
   

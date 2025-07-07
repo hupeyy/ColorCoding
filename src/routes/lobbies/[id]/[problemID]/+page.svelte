@@ -159,22 +159,17 @@
     }
   }
 
-  function handleFinishProblemSet() {
+  async function handleFinishProblemSet() {
     if (currPlayer && problemID && selectedLobby) {
-      // NOTE: Consider using a more accurate time calculation method
-      const solveTime = Number(((Date.now() - selectedLobby.startTime) / 1000).toFixed(2));
-      // Update the lobby with the player's solve time
-      // FIXME: Running code sets the solveTime to 0 for some reason.
-      updateLobby(lobbyId, {
+        await updateLobby(lobbyId, {
         playerData: {
           ...selectedLobby.playerData,
           [currPlayer.uid]: {
             ...selectedLobby.playerData[currPlayer.uid],
             problemsSolved: {
               ...selectedLobby.playerData[currPlayer.uid]?.problemsSolved,
-              [problemID]: problem?.difficulty
+              [problemID]: { difficulty: problem?.difficulty ?? '', runTime }
             },
-            solveTime: solveTime
           }
         }
       });
@@ -212,9 +207,7 @@
           [currPlayer?.uid]: 
           {...selectedLobby?.playerData[currPlayer?.uid],
             problemsSolved: 
-            {...selectedLobby?.playerData[currPlayer?.uid]?.problemsSolved, [problemID]: problem?.difficulty},
-            solveTime: 
-            0
+            {...selectedLobby?.playerData[currPlayer?.uid]?.problemsSolved, [problemID]: { difficulty: problem?.difficulty ?? '', runTime }}
           }
         }
       });

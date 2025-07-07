@@ -15,7 +15,7 @@
     let currPlayer = $derived<Player | null>($currentPlayer);
     let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyId) || null);
     
-    let playerScores = $state<{uid: string, score: number, solveTime: number}[]>([]);
+    let playerScores = $state<{uid: string, score: number, avgRunTime: number}[]>([]);
     let dataLoaded = $state(false);
 
     async function exitLobby(lobbyId){
@@ -35,36 +35,43 @@
             await leaveLobby(lobbyId, currPlayer);
             window.location.href = `/lobbies/`;
         }
-        
     }
 
     function calculateScore(playerId) {
         const playerData = selectedLobby?.playerData?.[playerId].problemsSolved;
-        // Check the difficulty of each problemID:difficulty map and calculate the score. 
-        if (!playerData) return 0;
-        return Object.entries(playerData).reduce((score, [problemID, difficulty]) => {
+        if (!playerData) return { score: 0, avgRunTime: 0 };
+
+        let result = Object.entries(playerData).reduce((acc, [problemID, { difficulty, runTime }]) => {
             switch (difficulty) {
                 case 'Easy':
-                    return score + 1000;
+                    acc.score += 1000;
+                    break;
                 case 'Medium':
-                    return score + 1500;
+                    acc.score += 1500;
+                    break;
                 case 'Hard':
-                    return score + 2000;
-                default:
-                    return score;
+                    acc.score += 2000;
+                    break;
             }
-        }, 0);
+            acc.totalRunTime += runTime || 0;
+            acc.count += 1;
+            return acc;
+        },{score: 0, totalRunTime: 0, count: 0});
 
+        const avgRunTime = result.count > 0 ? Number((result.totalRunTime / result.count).toFixed(2)) : 0;
+        const finalScore = result.score - (avgRunTime*100); //NOTE: May need to adjust the multiplier based on how difficult future problems are
+        return { score: Number(finalScore.toFixed(2)), avgRunTime };
     }
 
     function sortScores() {
         //Run calculateScore for each player in the lobby and store the results in playerScores
         playerScores = Object.entries(selectedLobby?.playerData || {}).map(([uid, data]) => ({
             uid,
-            score: calculateScore(uid),
-            solveTime: data.solveTime || 0
+            score: calculateScore(uid).score,
+            avgRunTime: calculateScore(uid).avgRunTime
         }));
         playerScores.sort((a, b) => b.score - a.score);
+        // FIXME: Exiting and then re-entering the lobby will break the runtimes as entering a problem automatically sets the runtime to -1
     }
     
     function findUsername(uid) {
@@ -97,13 +104,13 @@
   </div>
 {:else}
   <div class="fixed w-full h-full">
-    <h1 class="text-center text-2xl font-bold my-4">Leaderboard</h1>
+    <h1 class="text-center text-2xl font-bold my-8">Leaderboard</h1>
     <div class="w-1/3 mx-auto mb-4 px-4">
         <Table.Root>
             <Table.Header>
                 <Table.Row>
                     <Table.Head class="text-left">Player</Table.Head>
-                    <Table.Head class="text-center">Time</Table.Head>
+                    <Table.Head class="text-center">Average Runtime</Table.Head>
                     <Table.Head class="text-right">Score</Table.Head>
                 </Table.Row>
             </Table.Header>
@@ -111,7 +118,7 @@
                 {#each playerScores as player}
                 <Table.Row>
                     <Table.Cell class="text-left">{findUsername(player.uid)}</Table.Cell>
-                    <Table.Cell class="text-center">{player.solveTime} sec</Table.Cell>
+                    <Table.Cell class="text-center">{player.avgRunTime} ms</Table.Cell>
                     <Table.Cell class="text-right">{player.score}</Table.Cell>
                 </Table.Row>
                 {/each}

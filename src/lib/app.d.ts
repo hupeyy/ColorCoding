@@ -18,9 +18,7 @@ declare global {
         host: Player;
         id: string;
         name: string;
-        startTime: number;
-        playerData: Record<string, {problemsSolved: Record<string, {difficulty: string;}>; solveTime: number;}
-        >;
+        playerData: Record<string, { problemsSolved: Record<string, { difficulty: string; runTime: number; }> }>;
     }
 
     type Problem = {
