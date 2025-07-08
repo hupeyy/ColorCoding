@@ -56,6 +56,11 @@
 	export function getValue() {
         return editorInstance?.getValue();
     }
+	export function setValue(newValue) {
+		if (editorInstance) {
+			editorInstance.setValue(newValue);
+		}
+	}
 
 
 </script>

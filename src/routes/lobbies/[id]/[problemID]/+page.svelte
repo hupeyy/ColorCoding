@@ -1,5 +1,6 @@
 <script lang="ts">
   import MonacoEditor from '$lib/components/MonacoEditor.svelte';
+	import toast, { Toaster } from 'svelte-french-toast';
   import { slide } from 'svelte/transition';
   import { ScrollArea } from "$lib/components/ui/scroll-area/index.js"; 
   import * as Resizable from "$lib/components/ui/resizable";
@@ -8,6 +9,7 @@
   import { problems, getProblems } from '$lib/firebase';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
+  import { saveProblemCode } from '$lib/stores/codeStore';
   import {
     leaveLobby,
     currentPlayer, 
@@ -26,19 +28,20 @@
       { value: '74', label: 'Typescript', lang: 'typescript'}
   ];
     
-  let editorComponent: MonacoEditor;
+  let editorComponent = $state<MonacoEditor | null>(null);
   let prevProblemID: string | null = null;
   let executionResult: { output: string; passed: number; total: number } | null = null;
   let error: string | null = null;
   let problemLoaded = false;
+  let saveSuccess = false;
 
   let currPlayer = $derived<Player | null>($currentPlayer);
-  let lobbyId = $derived(page.params.id);
-  let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyId) || null);
+  let lobbyID = $derived(page.params.id);
+  let selectedLobby = $derived($lobbies?.find(lobby => lobby.id === lobbyID) || null);
   let problemID = $derived(page.params.problemID);
 
   let chosenLanguage = $state(languages[0].value); // default to the first language
-  let code = $state("print('Hello World!')");
+  let code = $state("print('Hello World!')"); // default code
   let backendLanguage = $state(languages[0].lang); // default to the first language
   let problem = $state<Problem | null>(null);
   let testCases = $state<{input: string, output: string, result: string, runtime: number}[]>([]);
@@ -46,6 +49,10 @@
   let dropdownRef = $state<HTMLElement | null>(null);
   let problemsFinished = $state(false);
   let runTime = $state(-1);
+  let codeMap = {};
+    saveProblemCode.subscribe(value => {
+    codeMap = value;
+  });
 
   async function submitCode() {
     // For each test case, create a promise that resolves when the polling is done
@@ -55,7 +62,7 @@
         testCases = [...testCases];
 
         const submission = {
-          source_code: editorComponent.getValue(),
+          source_code: editorComponent?.getValue(),
           language_id: chosenLanguage,
           expected_output: testCases[i].output,
           stdin: testCases[i].input,
@@ -122,26 +129,46 @@
   }
 
   function handleCodeSave(){
-    // TODO: Implement code saving functionality
-    alert("Code saved successfully!");
+    if (!currPlayer) {
+      alert("Please log in to save your code.");
+      return;
+    }
+    if (!problemID) {
+      alert("Please select a problem to save your code.");
+      return;
+    }
+  
+    // Save code for current problem
+    code = editorComponent?.getValue();
+    saveProblemCode.update(map => ({
+      ...map,
+      [lobbyID]: {
+        ...(map[lobbyID] || {}),
+        [problemID]: code
+      }
+    }));
+    console.log("Code saved for problem " + problemID);
+  }
+
+  function showSaveSuccess(){
+    toast.success("Code saved successfully!", {
+      duration: 2000,
+      position: 'top-center',
+      style: 'background-color: #4caf50; color: #fff; padding: 10px 20px; border-radius: 5px;'
+    });
   }
 
   function calculateRuntime() {
-  // TODO: Use runtimes to impact the amount of awarded points.
-  // Might need to save the runtime in the database.
-  // Ensure that only the best runtime is saved for each problem.
-  const validRuntimes = testCases
-    .map(tc => Number(tc.runtime))
-    .filter(rt => !isNaN(rt) && rt > 0);
+    const validRuntimes = testCases.map(tc => Number(tc.runtime)).filter(rt => !isNaN(rt) && rt > 0);
 
-  if (validRuntimes.length === 0) {
-    runTime = -1;
-    return;
+    if (validRuntimes.length === 0) {
+      runTime = -1;
+      return;
+    }
+
+    const sum = validRuntimes.reduce((total, rt) => total + rt, 0);
+    runTime = Number((sum / validRuntimes.length).toFixed(2));
   }
-
-  const sum = validRuntimes.reduce((total, rt) => total + rt, 0);
-  runTime = Number((sum / validRuntimes.length).toFixed(2));
-}
 
   function handleClick(event) {
     if (showProblemList && dropdownRef && !event.composedPath().includes(dropdownRef)) {
@@ -150,18 +177,21 @@
   }
   
   function handleProblemChange(problemId){
+    // Save current code before switching
+    handleCodeSave();
     problemLoaded = false;
     runTime = -1;
     if (prevProblemID !== problemId) {
       prevProblemID = problemId;
       problemID = problemId;
+      // Load code for the new problem, or default if not present
       showProblemList = false;
     }
   }
 
   async function handleFinishProblemSet() {
     if (currPlayer && problemID && selectedLobby) {
-        await updateLobby(lobbyId, {
+        await updateLobby(lobbyID, {
         playerData: {
           ...selectedLobby.playerData,
           [currPlayer.uid]: {
@@ -173,7 +203,7 @@
           }
         }
       });
-      window.location.href = `/lobbies/${lobbyId}/finished`
+      window.location.href = `/lobbies/${lobbyID}/finished`
     }
   }
 
@@ -201,7 +231,7 @@
     // Check if all test cases have passed
     const allPassed = testCases.every(testCase => testCase.result === "Passed");
     if(allPassed && problemID && currPlayer) {
-      updateLobby(lobbyId, {
+      updateLobby(lobbyID, {
         playerData: 
         {...selectedLobby?.playerData,
           [currPlayer?.uid]: 
@@ -219,7 +249,7 @@
     }
   });
 
-  //Subscribe to problems store and find the specific problem
+  // Handle problem loading and switching including loading the associated editor code for the new problem
   $effect(() => {
     if ($problems && problemID && problemLoaded== false) {
       problemLoaded = true;
@@ -232,6 +262,14 @@
           runtime: -1
         }));
       }
+      // Load code for the current problem if it exists
+      if (codeMap[lobbyID] && codeMap[lobbyID][problemID] !== undefined) {
+        code = codeMap[lobbyID][problemID];
+        console.log("Code is now " + code);
+        editorComponent?.setValue(code);
+      } else {
+        code = "print('Hello World!')";
+      }
     }
   });
 
@@ -240,6 +278,13 @@
   onMount(() => {
     const unsubscribeLobbies = getLobbies();
     const unsubscribeProblems = getProblems();
+    // Load code for the current problem if it exists
+    if (problemID && codeMap[lobbyID] && codeMap[lobbyID][problemID] !== undefined) {
+      code = codeMap[lobbyID][problemID];
+      console.log("Stored Code Loaded");
+    } else {
+      code = "print('Hello World!')";
+    }
 
     return () => {
       unsubscribeLobbies();
@@ -254,6 +299,7 @@
   </div>
 {:else}
   <div class="flex items-center border-t-2 py-2">
+    <Toaster />
     <Button 
       onclick={() => {showProblemList=true;}} 
       disabled={showProblemList}
@@ -310,7 +356,7 @@
               <div class="flex flex-col min-h-[400px] h-full">
                 <div class="flex flex-row justify-between p-4">
                   <Button onclick={async () => { await submitCode(); calculateRuntime(); }}>Submit Solution</Button>
-                  <Button onclick={() => handleCodeSave()}>Save Code</Button>
+                  <Button onclick={() => {handleCodeSave(); showSaveSuccess();}}>Save Code</Button>
                 </div>
                 {#if executionResult}
                   <div>
@@ -335,7 +381,7 @@
       </div>
     {/if}
     <div class="fixed flex justify-end items-end p-4 bottom-0 right-0">
-      <Button onclick={() => exitLobby(lobbyId)}>Exit Lobby</Button>
+      <Button onclick={() => exitLobby(lobbyID)}>Exit Lobby</Button>
     </div>
   </div>
 {/if}
